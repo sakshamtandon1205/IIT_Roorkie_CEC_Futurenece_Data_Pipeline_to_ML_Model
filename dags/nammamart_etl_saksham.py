@@ -93,7 +93,9 @@ def nammamart_etl_saksham():
     def audit(extracts: list, q: dict, l: dict):
         ctx = get_current_context()
         dag_run = ctx["dag_run"]
-        failed = [t.task_id for t in dag_run.get_task_instances() if t.state == "failed"]
+        # count tasks of this run that failed (Airflow 3 task API); audit runs even when others failed
+        failed = ctx["ti"].get_ti_count(dag_id=dag_run.dag_id, run_ids=[dag_run.run_id],
+                                        states=["failed", "upstream_failed"])
         status = "failed" if failed else "success"
         return etl.audit(ctx["run_id"], dag_run.start_date, extracts, q, l, status)
 
