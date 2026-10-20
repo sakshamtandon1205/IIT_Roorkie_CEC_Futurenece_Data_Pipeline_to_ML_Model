@@ -6,6 +6,7 @@ Prints the audit and result tables so they can be screenshotted.
     python include/tools/show.py recon        payment reconciliation (ETL and ELT)
     python include/tools/show.py quarantine   newest quarantine file (personal data is masked)
     python include/tools/show.py exp          one screen of facts about the latest run of each DAG (experiments)
+    python include/tools/show.py inc          the 10 corrected orders and duplicate check after the increment load
     python include/tools/show.py mart         the six business questions from the ELT marts
 
 Read-only. Needs `pip install duckdb pandas` on the machine that runs it.
@@ -98,6 +99,29 @@ def main(what):
         if "mart_daily_store_kpis" in tabs:
             print("\nrevenue of store S03 in the mart:", con.execute(
                 "SELECT ROUND(SUM(net_revenue),2) FROM mart_daily_store_kpis WHERE store_id='S03'").fetchone()[0])
+    elif what == "inc":
+        data = INCLUDE / "data" / "nammamart"
+        base = pd.read_csv(data / "orders.csv", dtype=str, keep_default_na=False)
+        inc = pd.read_csv(data / "orders_2026-10-01_increment.csv", dtype=str, keep_default_na=False)
+        fixed = sorted(set(inc["order_id"]) & set(base["order_id"]))
+        new = sorted(set(inc["order_id"]) - set(base["order_id"]))
+        print(f"increment file: {len(inc)} rows = {len(new)} new orders + {len(fixed)} corrections of existing orders")
+        ids = ",".join(f"'{i}'" for i in fixed)
+        for label, table, status_col in (("ETL etl_fact_orders", "etl_fact_orders", "order_status"),
+                                         ("ELT elt_fact_orders", "elt_fact_orders", "order_status")):
+            print(f"\n=== {label} ===")
+            print(q(con, f"SELECT COUNT(*) AS rows, COUNT(DISTINCT order_id) AS distinct_order_ids, "
+                         f"COUNT(*) - COUNT(DISTINCT order_id) AS duplicates, "
+                         f"COUNT(*) FILTER (WHERE _source_file LIKE '%increment%') AS rows_from_increment "
+                         f"FROM {table}" if table.startswith("elt") else
+                         f"SELECT COUNT(*) AS rows, COUNT(DISTINCT order_id) AS distinct_order_ids, "
+                         f"COUNT(*) - COUNT(DISTINCT order_id) AS duplicates, "
+                         f"COUNT(*) FILTER (WHERE source_file LIKE '%increment%') AS rows_from_increment "
+                         f"FROM {table}").to_string(index=False))
+            print("the 10 corrected orders:")
+            print(q(con, f"SELECT order_id, order_status, order_amount FROM {table} WHERE order_id IN ({ids}) "
+                         f"ORDER BY order_id").to_string(index=False))
+            print("net revenue:", con.execute(f"SELECT ROUND(SUM(net_revenue), 2) FROM {table}").fetchone()[0])
     elif what == "mart":
         for t, sql in (("mart_daily_store_kpis (first rows)", "SELECT order_date, zone, store_id, delivered_orders, net_revenue FROM mart_daily_store_kpis ORDER BY 1,2,3 LIMIT 8"),
                        ("mart_category_margin", "SELECT * FROM mart_category_margin ORDER BY revenue DESC"),
