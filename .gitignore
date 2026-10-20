@@ -13,3 +13,7 @@ airflow.db
 .astro/*.local.yml
 .astro/*.local.yaml
 test_api.py 
+
+# NammaMart (Saksham) local run files
+include/stage/
+include/warehouse_saksham.duckdb*

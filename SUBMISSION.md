@@ -65,8 +65,8 @@ Critical rows go to quarantine with a reason. Warning rows are loaded and logged
 | 37 | products | P0051, P0060, P0068 | category | category is blank | 3 | Completeness | category NOT NULL (needed for margin by category) | Critical |
 | 38 | products | P0030, P0140, P0030 | product_id | product_id appears more than once (all copies shown) | 4 | Uniqueness | keep the row whose name does not end with '(old)'; one row per product | Critical |
 | 39 | products | P0030, P0140 | product_name | old catalogue row left in the file (name ends with '(old)', different mrp) | 2 | Consistency | drop '(old)' rows from dim_product, keep for audit in raw | Warning |
-| 40 | stores | S12 | capacity_orders_per_day | capacity_orders_per_day is zero or missing | 1 | Accuracy | capacity > 0 (needed for the capacity bonus check) | Critical |
-| 41 | stores | S07 | zone | zone is blank (store cannot be placed in a zone) | 1 | Completeness | zone NOT NULL (daily revenue by zone needs it) | Critical |
+| 40 | stores | S12 | capacity_orders_per_day | capacity_orders_per_day is zero or missing | 1 | Accuracy | load the store, skip it in the capacity check, ask the client | Warning |
+| 41 | stores | S07 | zone | zone is blank (store cannot be placed in a zone) | 1 | Completeness | load with zone = 'Unknown' and ask the client (quarantining would drop the store's orders) | Warning |
 
 ### Other things I found while profiling
 

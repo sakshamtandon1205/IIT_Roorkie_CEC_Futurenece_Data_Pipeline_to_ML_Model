@@ -360,12 +360,12 @@ log_issue("products", pr, ~pr["is_perishable"].isin({"True", "False"}), "is_peri
 s = files["stores"]
 cap = num(s["capacity_orders_per_day"])
 log_issue("stores", s, blank(s["zone"]), "zone", "zone is blank (store cannot be placed in a zone)",
-          "Completeness", "Critical", "zone NOT NULL (daily revenue by zone needs it)")
+          "Completeness", "Warning", "load with zone = 'Unknown' and ask the client (quarantining would drop the store's orders)")
 log_issue("stores", s, ~blank(s["zone"]) & ~s["zone"].isin(ZONES), "zone",
           "zone not North/South/East/West", "Validity", "Critical", "allowed list")
 log_issue("stores", s, cap.isna() | (cap <= 0), "capacity_orders_per_day",
-          "capacity_orders_per_day is zero or missing", "Accuracy", "Critical",
-          "capacity > 0 (needed for the capacity bonus check)")
+          "capacity_orders_per_day is zero or missing", "Accuracy", "Warning",
+          "load the store, skip it in the capacity check, ask the client")
 log_issue("stores", s, ~s["pincode"].str.fullmatch(r"\d{6}"), "pincode",
           "pincode is not exactly 6 digits", "Validity", "Warning", "6 digits only")
 log_issue("stores", s, dt(s["open_date"]) > AS_OF, "open_date", "open_date is in the future",
