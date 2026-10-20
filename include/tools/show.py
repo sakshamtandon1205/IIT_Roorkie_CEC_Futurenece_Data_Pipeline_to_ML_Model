@@ -5,6 +5,7 @@ Prints the audit and result tables so they can be screenshotted.
     python include/tools/show.py dq           dq_results scorecard for the latest run of each DAG
     python include/tools/show.py recon        payment reconciliation (ETL and ELT)
     python include/tools/show.py quarantine   newest quarantine file (personal data is masked)
+    python include/tools/show.py exp          one screen of facts about the latest run of each DAG (experiments)
     python include/tools/show.py mart         the six business questions from the ELT marts
 
 Read-only. Needs `pip install duckdb pandas` on the machine that runs it.
@@ -65,6 +66,38 @@ def main(what):
         print("\nsample rows (ETL):")
         print(q(con, "SELECT order_id, payment_id, mismatch_type, order_amount, amount_paid, difference, reason "
                      "FROM etl_payment_reconciliation ORDER BY mismatch_type, order_id LIMIT 12").to_string(index=False))
+    elif what == "exp":
+        # one screen of facts for an experiment: what the latest run of each DAG did
+        print("--- pipeline_runs (last 4) ---")
+        print(q(con, "SELECT run_id, dag_id, rows_extracted, rows_loaded, rows_quarantined, status FROM pipeline_runs "
+                     "ORDER BY start_time DESC LIMIT 4").to_string(index=False))
+        for dag in ("nammamart_etl_saksham", "nammamart_elt_saksham"):
+            run = con.execute("SELECT run_id FROM dq_results WHERE dag_id = ? ORDER BY checked_at DESC LIMIT 1", [dag]).fetchone()
+            if not run:
+                continue
+            prev = con.execute("SELECT run_id FROM dq_results WHERE dag_id = ? AND run_id <> ? "
+                               "ORDER BY checked_at DESC LIMIT 1", [dag, run[0]]).fetchone()
+            print(f"\n--- {dag}: checks that changed, latest run {run[0]} vs previous {prev[0] if prev else '(none)'} ---")
+            print(q(con, """
+                SELECT n.check_name, n.severity, n.rows_checked, n.rows_failed AS failed_now,
+                       p.rows_failed AS failed_before, n.status
+                FROM dq_results n
+                LEFT JOIN dq_results p ON p.dag_id = n.dag_id AND p.check_name = n.check_name AND p.run_id = ?
+                WHERE n.dag_id = ? AND n.run_id = ?
+                  AND (n.rows_failed IS DISTINCT FROM p.rows_failed OR n.rows_checked IS DISTINCT FROM p.rows_checked)
+                ORDER BY n.check_name""", prev[0] if prev else "", dag, run[0]).to_string(index=False))
+        tabs = {r[0] for r in con.execute("SELECT table_name FROM information_schema.tables").fetchall()}
+        if "etl_fact_orders" in tabs:
+            print("\nETL   etl_fact_orders rows:", con.execute("SELECT COUNT(*) FROM etl_fact_orders").fetchone()[0],
+                  "  net revenue:", con.execute("SELECT ROUND(SUM(net_revenue),2) FROM etl_fact_orders").fetchone()[0])
+        if "elt_fact_orders" in tabs:
+            print("ELT   elt_fact_orders rows:", con.execute("SELECT COUNT(*) FROM elt_fact_orders").fetchone()[0],
+                  "  net revenue:", con.execute("SELECT ROUND(SUM(net_revenue),2) FROM elt_fact_orders").fetchone()[0])
+            print("ELT   raw_orders rows per run:")
+            print(q(con, "SELECT _run_id AS run_id, _source_file AS file, COUNT(*) AS rows FROM raw_orders GROUP BY 1,2 ORDER BY MIN(_loaded_at)").to_string(index=False))
+        if "mart_daily_store_kpis" in tabs:
+            print("\nrevenue of store S03 in the mart:", con.execute(
+                "SELECT ROUND(SUM(net_revenue),2) FROM mart_daily_store_kpis WHERE store_id='S03'").fetchone()[0])
     elif what == "mart":
         for t, sql in (("mart_daily_store_kpis (first rows)", "SELECT order_date, zone, store_id, delivered_orders, net_revenue FROM mart_daily_store_kpis ORDER BY 1,2,3 LIMIT 8"),
                        ("mart_category_margin", "SELECT * FROM mart_category_margin ORDER BY revenue DESC"),

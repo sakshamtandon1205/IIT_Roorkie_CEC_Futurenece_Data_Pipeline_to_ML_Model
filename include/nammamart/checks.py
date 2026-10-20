@@ -139,7 +139,7 @@ def validate_orders(df, file, ctx):
     if file == "orders":
         c.add("order_ts_inside_september", "Timeliness", "Warning",
               when < pd.Timestamp(cfg.DATA_START))
-        latest = when.max()
+        latest = when[when <= ctx.as_of].max()      # future-dated rows must not hide a stale file
         c.add_file_level("latest_order_within_1_day", "Timeliness", "Warning",
                          pd.isna(latest) or (ctx.as_of - latest) > pd.Timedelta(days=1))
         prev = ctx.previous_orders_volume

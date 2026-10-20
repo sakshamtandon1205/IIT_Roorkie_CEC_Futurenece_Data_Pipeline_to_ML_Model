@@ -13,11 +13,13 @@ from pathlib import Path
 
 import pendulum
 from airflow.sdk import Param, dag, get_current_context, task
+from airflow.sdk.exceptions import AirflowFailException
 from airflow.timetables.trigger import CronTriggerTimetable
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "include"))
 from nammamart import config as cfg          # noqa: E402
 from nammamart import elt                    # noqa: E402
+from nammamart.etl import PermanentSchemaError  # noqa: E402
 from nammamart.alerts import notify_failure, notify_quality  # noqa: E402
 
 IST = pendulum.timezone("Asia/Kolkata")
@@ -58,7 +60,10 @@ def nammamart_elt_saksham():
     @task
     def load_raw(key: str):
         ctx, run_id, as_of, inc = _p()
-        return elt.load_raw(key, run_id, enabled=(key != "increment" or inc))
+        try:
+            return elt.load_raw(key, run_id, enabled=(key != "increment" or inc))
+        except PermanentSchemaError as err:       # retrying cannot fix a missing column
+            raise AirflowFailException(str(err))
 
     @task
     def stage(entity: str, raws: list):

@@ -295,7 +295,8 @@ UNION ALL
     GROUP BY _source_file
 UNION ALL
     SELECT 'orders.latest_order_within_1_day', 'Timeliness', 'Warning', 1,
-           CASE WHEN MAX(ts_val) IS NULL OR TIMESTAMP '{{as_of}}' - MAX(ts_val) > INTERVAL 1 DAY THEN 1 ELSE 0 END
+           CASE WHEN MAX(ts_val) FILTER (WHERE ts_val <= TIMESTAMP '{{as_of}}') IS NULL
+                OR TIMESTAMP '{{as_of}}' - MAX(ts_val) FILTER (WHERE ts_val <= TIMESTAMP '{{as_of}}') > INTERVAL 1 DAY THEN 1 ELSE 0 END
     FROM chk_orders WHERE _run_id = '{{run_id}}' AND _source_file = 'orders.csv'
 UNION ALL
     SELECT 'orders.volume_vs_last_run', 'Completeness', 'Warning', COUNT(*),

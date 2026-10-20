@@ -17,3 +17,4 @@ test_api.py
 # NammaMart (Saksham) local run files
 include/stage/
 include/warehouse_saksham.duckdb*
+include/data/_experiment_backup/
