@@ -54,9 +54,10 @@ class Collector:
             self.failed |= mask
             self.reason[mask] = self.reason[mask] + name + "; "
 
-    def add_file_level(self, name, dimension, severity, is_failing: bool):
-        """Whole-file check (freshness, volume): counts as 1 thing checked."""
-        self._record(name, dimension, severity, 1, int(bool(is_failing)))
+    def add_file_level(self, name, dimension, severity, is_failing: bool, checked: int = 1):
+        """Whole-file check (freshness, volume). `checked` is stored in dq_results.rows_checked,
+        so the volume check can read last run's row count from there."""
+        self._record(name, dimension, severity, checked, int(bool(is_failing)))
 
     def _record(self, name, dimension, severity, checked, failed):
         status = "PASS" if failed == 0 else ("FAIL" if severity == "Critical" else "WARN")
@@ -143,7 +144,8 @@ def validate_orders(df, file, ctx):
                          pd.isna(latest) or (ctx.as_of - latest) > pd.Timedelta(days=1))
         prev = ctx.previous_orders_volume
         c.add_file_level("volume_vs_last_run", "Completeness", "Warning",
-                         prev is not None and prev > 0 and len(df) < cfg.VOLUME_DROP_LIMIT * prev)
+                         prev is not None and prev > 0 and len(df) < cfg.VOLUME_DROP_LIMIT * prev,
+                         checked=len(df))
     return c.output()
 
 
