@@ -102,7 +102,12 @@ def nammamart_etl_saksham():
         failed = ctx["ti"].get_ti_count(dag_id=dag_run.dag_id, run_ids=[dag_run.run_id],
                                         states=["failed", "upstream_failed"])
         status = "failed" if failed else "success"
-        return etl.audit(ctx["run_id"], dag_run.start_date, extracts, q, l, status)
+        row = etl.audit(ctx["run_id"], dag_run.start_date, extracts, q, l, status)
+        if status == "failed":
+            # The audit row is already written. Fail on purpose so the DAG run turns red as well:
+            # audit is the only last task and it always runs, so without this a failed run looks green.
+            raise AirflowFailException(f"{failed} task(s) failed or were skipped in this run")
+        return row
 
     extracts = [extract.override(task_id=f"extract_{k}")(k) for k in cfg.FILES]
     val = validate(extracts)
