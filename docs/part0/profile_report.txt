@@ -1,0 +1,138 @@
+==============================================================================
+STEP 1: PROFILE OF EVERY FILE
+==============================================================================
+
+--- orders: 2412 rows, 13 columns ---
+blank values per column : {'order_ts': 1, 'customer_id': 18, 'delivery_minutes': 164}
+duplicate order_id    : 12 extra rows (12 are exact copies of another row)
+quantity           min=-3  max=5  non-numeric=0
+unit_price         min=10.0  max=883.0  non-numeric=0
+discount_pct       min=0  max=250  non-numeric=0
+order_amount       min=-1593.0  max=9576.0  non-numeric=0
+delivery_minutes   min=8.0  max=1440.0  non-numeric=0
+order_ts           min=2026-09-01 06:30:15  max=2027-01-01 09:00:00  unparseable=5
+order_status       {'DELIVERED': np.int64(2182), 'CANCELLED': np.int64(156), 'RETURNED': np.int64(69), 'Pending??': np.int64(3), 'delivered': np.int64(2)}
+payment_mode       {'UPI': np.int64(1329), 'Card': np.int64(493), 'Cash on Delivery': np.int64(326), 'Wallet': np.int64(254), 'upi': np.int64(4), 'Cashh': np.int64(2), 'UPI ': np.int64(2), 'CARD': np.int64(1), 'cod': np.int64(1)}
+channel            {'App': np.int64(2044), 'Web': np.int64(368)}
+
+--- payments: 2228 rows, 7 columns ---
+blank values per column : {'gateway_ref': 301}
+duplicate payment_id  : 4 extra rows (4 are exact copies of another row)
+amount_paid        min=-1593.0  max=9576.0  non-numeric=0
+payment_ts         min=2026-09-01 06:30:24  max=2027-01-01 09:01:46  unparseable=0
+payment_mode       {'UPI': np.int64(1238), 'Card': np.int64(445), 'Cash on Delivery': np.int64(301), 'Wallet': np.int64(234), 'upi': np.int64(4), 'UPI ': np.int64(2), 'Cashh': np.int64(2), 'cod': np.int64(1), 'CARD': np.int64(1)}
+payment_status     {'SUCCESS': np.int64(2116), 'REFUNDED': np.int64(68), 'FAILED': np.int64(44)}
+
+--- customers: 405 rows, 10 columns ---
+blank values per column : {'city': 6}
+duplicate customer_id : 5 extra rows (0 are exact copies of another row)
+signup_date        min=2024-06-01 00:00:00  max=2027-01-05 00:00:00  unparseable=0
+loyalty_tier       {'Bronze': np.int64(185), 'Silver': np.int64(133), 'Gold': np.int64(54), 'Platinum': np.int64(25), 'BRONZE': np.int64(3), 'bronze': np.int64(3), 'SILVER': np.int64(2)}
+city               {'Bengaluru': np.int64(399), '': np.int64(6)}
+is_active          {'Y': np.int64(352), 'N': np.int64(53)}
+
+--- products: 152 rows, 10 columns ---
+blank values per column : {'category': 3}
+duplicate product_id  : 2 extra rows (0 are exact copies of another row)
+mrp                min=-203.0  max=883.0  non-numeric=0
+cost_price         min=6.79  max=631.79  non-numeric=0
+launch_date        min=2023-01-03 00:00:00  max=2025-09-20 00:00:00  unparseable=0
+category           {'Dairy & Bakery': np.int64(26), 'Household': np.int64(26), 'Fruits & Vegetables': np.int64(25), 'Snacks & Beverages': np.int64(25), 'Personal Care': np.int64(25), 'Staples': np.int64(22), '': np.int64(3)}
+unit               {'pack': np.int64(76), 'unit': np.int64(51), 'kg': np.int64(25)}
+is_perishable      {'False': np.int64(101), 'True': np.int64(51)}
+
+--- stores: 15 rows, 8 columns ---
+blank values per column : {'zone': 1}
+duplicate store_id    : 0 extra rows (0 are exact copies of another row)
+capacity_orders_per_day min=0  max=600  non-numeric=0
+open_date          min=2024-02-14 00:00:00  max=2025-07-28 00:00:00  unparseable=0
+zone               {'East': np.int64(4), 'West': np.int64(4), 'North': np.int64(3), 'South': np.int64(3), '': np.int64(1)}
+
+--- increment: 160 rows, 13 columns ---
+blank values per column : none
+duplicate order_id    : 0 extra rows (0 are exact copies of another row)
+quantity           min=1  max=4  non-numeric=0
+unit_price         min=10.0  max=883.0  non-numeric=0
+discount_pct       min=0  max=20  non-numeric=0
+order_amount       min=11.0  max=2052.0  non-numeric=0
+delivery_minutes   min=8  max=34  non-numeric=0
+order_ts           min=2026-09-01 09:38:13  max=2026-10-01 22:33:00  unparseable=0
+order_status       {'DELIVERED': np.int64(150), 'RETURNED': np.int64(10)}
+payment_mode       {'UPI': np.int64(46), 'Card': np.int64(44), 'Cash on Delivery': np.int64(40), 'Wallet': np.int64(30)}
+channel            {'App': np.int64(160)}
+
+==============================================================================
+STEP 2b: INCREMENT FILE vs orders.csv
+==============================================================================
+rows in increment file          : 160
+order_ids already in orders.csv : 10  (these are corrections -> UPDATE)
+order_ids new to the warehouse  : 150  (these are new orders -> INSERT)
+corrections that change status  : 10
+status changes seen             : DELIVERED -> RETURNED x 10
+
+==============================================================================
+STEP 3: DATA ISSUES LOG (one line per issue type)
+==============================================================================
+#1   customers  signup_date              Timeliness    Critical     3 rows  signup_date is in the future
+#2   customers  customer_id              Uniqueness    Critical    10 rows  customer_id appears more than once (all copies shown)
+#3   customers  city                     Completeness  Warning      6 rows  city is blank
+#4   customers  loyalty_tier             Consistency   Warning      8 rows  loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)
+#5   customers  email                    Uniqueness    Warning      4 rows  same email on two different customer_ids
+#6   customers  email                    Validity      Warning     12 rows  email format is invalid
+#7   customers  phone                    Validity      Warning      7 rows  phone is not exactly 10 digits
+#8   customers  pincode                  Validity      Warning      3 rows  pincode is not exactly 6 digits
+#9   orders     order_amount             Accuracy      Critical    18 rows  order_amount differs from quantity x unit_price x (1 - discount/100)
+#10  orders     quantity                 Accuracy      Critical    10 rows  quantity is zero or negative
+#11  orders     delivery_minutes         Accuracy      Critical     6 rows  delivery_minutes above 120 (impossible, hours not minutes)
+#12  orders     customer_id              Completeness  Critical    18 rows  customer_id is blank
+#13  orders     delivery_minutes         Completeness  Critical     8 rows  DELIVERED order has no delivery_minutes
+#14  orders     order_ts                 Completeness  Critical     1 rows  order_ts is blank
+#15  orders     order_id                 Consistency   Critical    27 rows  DELIVERED order has no payment row
+#16  orders     product_id               Consistency   Critical     9 rows  product_id not found in products
+#17  orders     store_id                 Consistency   Critical     5 rows  store_id not found in stores
+#18  orders     order_ts                 Timeliness    Critical     7 rows  order_ts is in the future
+#19  orders     order_id                 Uniqueness    Critical    12 rows  order_id appears more than once (repeat of an earlier row)
+#20  orders     order_ts                 Validity      Critical     5 rows  order_ts is not a valid timestamp
+#21  orders     order_status             Validity      Critical     3 rows  order_status not in DELIVERED/CANCELLED/RETURNED
+#22  orders     discount_pct             Validity      Critical     3 rows  discount_pct outside 0-100
+#23  orders     payment_mode             Validity      Warning      7 rows  payment_mode has wrong casing/spaces
+#24  orders     payment_mode             Validity      Warning      3 rows  payment_mode is a typo or short form (Cashh, cod)
+#25  orders     order_status             Validity      Warning      2 rows  order_status has wrong casing/spaces
+#26  payments   amount_paid              Accuracy      Critical    10 rows  amount_paid is missing, non-numeric or not positive
+#27  payments   payment_status           Consistency   Critical    44 rows  payment FAILED but the order is DELIVERED (revenue not collected)
+#28  payments   amount_paid              Consistency   Critical    14 rows  SUCCESS payment amount does not equal the order's order_amount
+#29  payments   order_id                 Consistency   Critical     8 rows  payment refers to an order_id that is not in orders
+#30  payments   order_id                 Consistency   Critical     3 rows  SUCCESS payment belongs to an order with an invalid status (Pending??)
+#31  payments   payment_ts               Timeliness    Critical     7 rows  payment_ts is in the future
+#32  payments   payment_id               Uniqueness    Critical     4 rows  payment_id appears more than once
+#33  payments   payment_mode             Validity      Warning      7 rows  payment_mode has wrong casing/spaces
+#34  payments   payment_mode             Validity      Warning      3 rows  payment_mode is a typo or short form (Cashh, cod)
+#35  products   cost_price               Accuracy      Critical     5 rows  cost_price is higher than mrp
+#36  products   mrp                      Accuracy      Critical     1 rows  mrp missing or not positive
+#37  products   category                 Completeness  Critical     3 rows  category is blank
+#38  products   product_id               Uniqueness    Critical     4 rows  product_id appears more than once (all copies shown)
+#39  products   product_name             Consistency   Warning      2 rows  old catalogue row left in the file (name ends with '(old)', different mrp)
+#40  stores     capacity_orders_per_day  Accuracy      Critical     1 rows  capacity_orders_per_day is zero or missing
+#41  stores     zone                     Completeness  Critical     1 rows  zone is blank (store cannot be placed in a zone)
+
+Issues per file:
+           issue_types  rows
+file                        
+customers            8    53
+orders              17   144
+payments             9   100
+products             5    15
+stores               2     2
+
+Issues per quality dimension:
+              issue_types
+dimension                
+Accuracy                7
+Completeness            6
+Consistency             9
+Timeliness              3
+Uniqueness              5
+Validity               11
+
+Total: 41 issue types across 5 of the 5 data files (orders, payments, customers, products, stores).
+The increment file passed every check, so it appears nowhere in the log.

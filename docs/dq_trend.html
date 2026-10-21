@@ -1,0 +1,136 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>NammaMart data quality trend</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{font-family:system-ui,sans-serif;margin:24px auto;max-width:1140px;padding:0 16px;color:#111827;background:#fff}
+h1{font-size:20px}h2{font-size:15px;margin:28px 0 4px}svg{width:100%;height:auto}p{color:#374151;font-size:14px}</style></head>
+<body><h1>NammaMart data quality trend (Saksham Tandon)</h1>
+<p>One point per pipeline run, in the order the runs started, from the dq_results table. The two pipelines run the same
+checks, so the ETL and ELT lines sit on top of each other except in the experiments that changed the input files.
+The first points are the clean runs of the September data; the spikes and drops are the observability experiments.</p>
+<h2>Rows failing a check, per run (all checks added up)</h2><svg viewBox="0 0 1100 300" role="img" aria-label="Rows failing a check, per run (all checks added up)">
+<line x1="70" x2="1080" y1="240.0" y2="240.0" stroke="#e5e7eb"/><text x="62" y="244.0" text-anchor="end" font-size="11" fill="#6b7280">0</text>
+<line x1="70" x2="1080" y1="187.5" y2="187.5" stroke="#e5e7eb"/><text x="62" y="191.5" text-anchor="end" font-size="11" fill="#6b7280">600</text>
+<line x1="70" x2="1080" y1="135.0" y2="135.0" stroke="#e5e7eb"/><text x="62" y="139.0" text-anchor="end" font-size="11" fill="#6b7280">1,200</text>
+<line x1="70" x2="1080" y1="82.5" y2="82.5" stroke="#e5e7eb"/><text x="62" y="86.5" text-anchor="end" font-size="11" fill="#6b7280">1,800</text>
+<line x1="70" x2="1080" y1="30.0" y2="30.0" stroke="#e5e7eb"/><text x="62" y="34.0" text-anchor="end" font-size="11" fill="#6b7280">2,400</text>
+<text x="90.2" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 90.2 256)">21 Oct 02:22</text>
+<text x="171.0" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 171.0 256)">21 Oct 02:47</text>
+<text x="251.8" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 251.8 256)">21 Oct 03:30</text>
+<text x="332.6" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 332.6 256)">21 Oct 03:48</text>
+<text x="413.4" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 413.4 256)">21 Oct 09:02</text>
+<text x="494.2" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 494.2 256)">21 Oct 16:31</text>
+<text x="575.0" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 575.0 256)">21 Oct 16:43</text>
+<text x="655.8" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 655.8 256)">21 Oct 16:56</text>
+<text x="736.6" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 736.6 256)">21 Oct 17:14</text>
+<text x="817.4" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 817.4 256)">21 Oct 17:31</text>
+<text x="898.2" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 898.2 256)">21 Oct 17:44</text>
+<text x="979.0" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 979.0 256)">21 Oct 17:59</text>
+<text x="1059.8" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 1059.8 256)">21 Oct 18:13</text>
+<path d="M90.2,215.5 L211.4,215.5 L292.2,215.5 L413.4,215.5 L453.8,215.5 L534.6,214.6 L696.2,40.6 L777.0,188.2 L857.8,215.8 L938.6,215.5 L1019.4,215.5" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="0"/>
+<circle cx="90.2" cy="215.5" r="3.5" fill="#2563eb"/>
+<circle cx="211.4" cy="215.5" r="3.5" fill="#2563eb"/>
+<circle cx="292.2" cy="215.5" r="3.5" fill="#2563eb"/>
+<circle cx="413.4" cy="215.5" r="3.5" fill="#2563eb"/>
+<circle cx="453.8" cy="215.5" r="3.5" fill="#2563eb"/>
+<circle cx="534.6" cy="214.6" r="3.5" fill="#2563eb"/>
+<path d="M610.4,235.0 l10,10 m-10,0 l10,-10" stroke="#dc2626" stroke-width="2"/>
+<circle cx="696.2" cy="40.6" r="3.5" fill="#2563eb"/>
+<circle cx="777.0" cy="188.2" r="3.5" fill="#2563eb"/>
+<circle cx="857.8" cy="215.8" r="3.5" fill="#2563eb"/>
+<circle cx="938.6" cy="215.5" r="3.5" fill="#2563eb"/>
+<circle cx="1019.4" cy="215.5" r="3.5" fill="#2563eb"/>
+<path d="M130.6,215.5 L171.0,215.5 L251.8,215.5 L332.6,215.5 L373.0,215.5 L494.2,215.5 L575.0,214.6 L736.6,40.6 L817.4,188.2 L898.2,215.8 L979.0,215.5 L1059.8,215.5" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4"/>
+<circle cx="130.6" cy="215.5" r="3.5" fill="#d97706"/>
+<circle cx="171.0" cy="215.5" r="3.5" fill="#d97706"/>
+<circle cx="251.8" cy="215.5" r="3.5" fill="#d97706"/>
+<circle cx="332.6" cy="215.5" r="3.5" fill="#d97706"/>
+<circle cx="373.0" cy="215.5" r="3.5" fill="#d97706"/>
+<circle cx="494.2" cy="215.5" r="3.5" fill="#d97706"/>
+<circle cx="575.0" cy="214.6" r="3.5" fill="#d97706"/>
+<path d="M650.8,235.0 l10,10 m-10,0 l10,-10" stroke="#dc2626" stroke-width="2"/>
+<circle cx="736.6" cy="40.6" r="3.5" fill="#d97706"/>
+<circle cx="817.4" cy="188.2" r="3.5" fill="#d97706"/>
+<circle cx="898.2" cy="215.8" r="3.5" fill="#d97706"/>
+<circle cx="979.0" cy="215.5" r="3.5" fill="#d97706"/>
+<circle cx="1059.8" cy="215.5" r="3.5" fill="#d97706"/>
+<line x1="70" x2="94" y1="12" y2="12" stroke="#2563eb" stroke-width="2" stroke-dasharray="0"/><text x="100" y="16" font-size="12" fill="#111827">ETL</text>
+<line x1="260" x2="284" y1="12" y2="12" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4"/><text x="290" y="16" font-size="12" fill="#111827">ELT</text>
+<path d="M450,8 l8,8 m-8,0 l8,-8" stroke="#dc2626" stroke-width="2"/><text x="464" y="16" font-size="12" fill="#111827">run failed before the checks</text></svg>
+<h2>Checks in FAIL or WARN state, per run</h2><svg viewBox="0 0 1100 300" role="img" aria-label="Checks in FAIL or WARN state, per run">
+<line x1="70" x2="1080" y1="240.0" y2="240.0" stroke="#e5e7eb"/><text x="62" y="244.0" text-anchor="end" font-size="11" fill="#6b7280">0</text>
+<line x1="70" x2="1080" y1="187.5" y2="187.5" stroke="#e5e7eb"/><text x="62" y="191.5" text-anchor="end" font-size="11" fill="#6b7280">6</text>
+<line x1="70" x2="1080" y1="135.0" y2="135.0" stroke="#e5e7eb"/><text x="62" y="139.0" text-anchor="end" font-size="11" fill="#6b7280">12</text>
+<line x1="70" x2="1080" y1="82.5" y2="82.5" stroke="#e5e7eb"/><text x="62" y="86.5" text-anchor="end" font-size="11" fill="#6b7280">18</text>
+<line x1="70" x2="1080" y1="30.0" y2="30.0" stroke="#e5e7eb"/><text x="62" y="34.0" text-anchor="end" font-size="11" fill="#6b7280">24</text>
+<text x="90.2" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 90.2 256)">21 Oct 02:22</text>
+<text x="171.0" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 171.0 256)">21 Oct 02:47</text>
+<text x="251.8" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 251.8 256)">21 Oct 03:30</text>
+<text x="332.6" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 332.6 256)">21 Oct 03:48</text>
+<text x="413.4" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 413.4 256)">21 Oct 09:02</text>
+<text x="494.2" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 494.2 256)">21 Oct 16:31</text>
+<text x="575.0" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 575.0 256)">21 Oct 16:43</text>
+<text x="655.8" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 655.8 256)">21 Oct 16:56</text>
+<text x="736.6" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 736.6 256)">21 Oct 17:14</text>
+<text x="817.4" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 817.4 256)">21 Oct 17:31</text>
+<text x="898.2" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 898.2 256)">21 Oct 17:44</text>
+<text x="979.0" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 979.0 256)">21 Oct 17:59</text>
+<text x="1059.8" y="256" text-anchor="end" font-size="10" fill="#6b7280" transform="rotate(-40 1059.8 256)">21 Oct 18:13</text>
+<path d="M90.2,30.0 L211.4,30.0 L292.2,30.0 L413.4,30.0 L453.8,30.0 L534.6,30.0 L696.2,135.0 L777.0,30.0 L857.8,30.0 L938.6,30.0 L1019.4,30.0" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="0"/>
+<circle cx="90.2" cy="30.0" r="3.5" fill="#2563eb"/>
+<circle cx="211.4" cy="30.0" r="3.5" fill="#2563eb"/>
+<circle cx="292.2" cy="30.0" r="3.5" fill="#2563eb"/>
+<circle cx="413.4" cy="30.0" r="3.5" fill="#2563eb"/>
+<circle cx="453.8" cy="30.0" r="3.5" fill="#2563eb"/>
+<circle cx="534.6" cy="30.0" r="3.5" fill="#2563eb"/>
+<path d="M610.4,235.0 l10,10 m-10,0 l10,-10" stroke="#dc2626" stroke-width="2"/>
+<circle cx="696.2" cy="135.0" r="3.5" fill="#2563eb"/>
+<circle cx="777.0" cy="30.0" r="3.5" fill="#2563eb"/>
+<circle cx="857.8" cy="30.0" r="3.5" fill="#2563eb"/>
+<circle cx="938.6" cy="30.0" r="3.5" fill="#2563eb"/>
+<circle cx="1019.4" cy="30.0" r="3.5" fill="#2563eb"/>
+<path d="M90.2,117.5 L211.4,117.5 L292.2,117.5 L413.4,117.5 L453.8,117.5 L534.6,108.8 L696.2,135.0 L777.0,108.8 L857.8,108.8 L938.6,117.5 L1019.4,117.5" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="0"/>
+<circle cx="90.2" cy="117.5" r="3.5" fill="#16a34a"/>
+<circle cx="211.4" cy="117.5" r="3.5" fill="#16a34a"/>
+<circle cx="292.2" cy="117.5" r="3.5" fill="#16a34a"/>
+<circle cx="413.4" cy="117.5" r="3.5" fill="#16a34a"/>
+<circle cx="453.8" cy="117.5" r="3.5" fill="#16a34a"/>
+<circle cx="534.6" cy="108.8" r="3.5" fill="#16a34a"/>
+<path d="M610.4,235.0 l10,10 m-10,0 l10,-10" stroke="#dc2626" stroke-width="2"/>
+<circle cx="696.2" cy="135.0" r="3.5" fill="#16a34a"/>
+<circle cx="777.0" cy="108.8" r="3.5" fill="#16a34a"/>
+<circle cx="857.8" cy="108.8" r="3.5" fill="#16a34a"/>
+<circle cx="938.6" cy="117.5" r="3.5" fill="#16a34a"/>
+<circle cx="1019.4" cy="117.5" r="3.5" fill="#16a34a"/>
+<path d="M130.6,30.0 L171.0,30.0 L251.8,30.0 L332.6,30.0 L373.0,30.0 L494.2,30.0 L575.0,30.0 L736.6,135.0 L817.4,30.0 L898.2,30.0 L979.0,30.0 L1059.8,30.0" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4"/>
+<circle cx="130.6" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="171.0" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="251.8" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="332.6" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="373.0" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="494.2" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="575.0" cy="30.0" r="3.5" fill="#d97706"/>
+<path d="M650.8,235.0 l10,10 m-10,0 l10,-10" stroke="#dc2626" stroke-width="2"/>
+<circle cx="736.6" cy="135.0" r="3.5" fill="#d97706"/>
+<circle cx="817.4" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="898.2" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="979.0" cy="30.0" r="3.5" fill="#d97706"/>
+<circle cx="1059.8" cy="30.0" r="3.5" fill="#d97706"/>
+<path d="M130.6,117.5 L171.0,117.5 L251.8,117.5 L332.6,117.5 L373.0,117.5 L494.2,117.5 L575.0,108.8 L736.6,135.0 L817.4,108.8 L898.2,108.8 L979.0,117.5 L1059.8,117.5" fill="none" stroke="#9333ea" stroke-width="2" stroke-dasharray="6 4"/>
+<circle cx="130.6" cy="117.5" r="3.5" fill="#9333ea"/>
+<circle cx="171.0" cy="117.5" r="3.5" fill="#9333ea"/>
+<circle cx="251.8" cy="117.5" r="3.5" fill="#9333ea"/>
+<circle cx="332.6" cy="117.5" r="3.5" fill="#9333ea"/>
+<circle cx="373.0" cy="117.5" r="3.5" fill="#9333ea"/>
+<circle cx="494.2" cy="117.5" r="3.5" fill="#9333ea"/>
+<circle cx="575.0" cy="108.8" r="3.5" fill="#9333ea"/>
+<path d="M650.8,235.0 l10,10 m-10,0 l10,-10" stroke="#dc2626" stroke-width="2"/>
+<circle cx="736.6" cy="135.0" r="3.5" fill="#9333ea"/>
+<circle cx="817.4" cy="108.8" r="3.5" fill="#9333ea"/>
+<circle cx="898.2" cy="108.8" r="3.5" fill="#9333ea"/>
+<circle cx="979.0" cy="117.5" r="3.5" fill="#9333ea"/>
+<circle cx="1059.8" cy="117.5" r="3.5" fill="#9333ea"/>
+<line x1="70" x2="94" y1="12" y2="12" stroke="#2563eb" stroke-width="2" stroke-dasharray="0"/><text x="100" y="16" font-size="12" fill="#111827">ETL FAIL (Critical)</text>
+<line x1="260" x2="284" y1="12" y2="12" stroke="#16a34a" stroke-width="2" stroke-dasharray="0"/><text x="290" y="16" font-size="12" fill="#111827">ETL WARN (Warning)</text>
+<line x1="450" x2="474" y1="12" y2="12" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4"/><text x="480" y="16" font-size="12" fill="#111827">ELT FAIL (Critical)</text>
+<line x1="640" x2="664" y1="12" y2="12" stroke="#9333ea" stroke-width="2" stroke-dasharray="6 4"/><text x="670" y="16" font-size="12" fill="#111827">ELT WARN (Warning)</text>
+<path d="M830,8 l8,8 m-8,0 l8,-8" stroke="#dc2626" stroke-width="2"/><text x="844" y="16" font-size="12" fill="#111827">run failed before the checks</text></svg>
+<p>Generated by include/tools/dq_trend.py from 25 runs.</p></body></html>

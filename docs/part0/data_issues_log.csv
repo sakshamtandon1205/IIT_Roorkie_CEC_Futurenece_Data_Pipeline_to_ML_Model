@@ -1,0 +1,42 @@
+issue_no,file,column,problem,dimension,severity,rows_affected,example_keys,proposed_rule
+1,customers,signup_date,signup_date is in the future,Timeliness,Critical,3,"C00400, C00398, C00038",signup_date <= extract date
+2,customers,customer_id,customer_id appears more than once (all copies shown),Uniqueness,Critical,10,"C00103, C00103, C00252",copies disagree on phone/area: keep one row per customer (ask client which is current)
+3,customers,city,city is blank,Completeness,Warning,6,"C00355, C00394, C00233",load; fill 'Unknown' in the dimension
+4,customers,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",Consistency,Warning,8,"C00199, C00171, C00133",title-case everything
+5,customers,email,same email on two different customer_ids,Uniqueness,Warning,4,"C00337, C00045, C00327",investigate possible duplicate customer
+6,customers,email,email format is invalid,Validity,Warning,12,"C00337, C00307, C00063",regex check; mask anyway
+7,customers,phone,phone is not exactly 10 digits,Validity,Warning,7,"C00151, C00240, C00095",10 digits only
+8,customers,pincode,pincode is not exactly 6 digits,Validity,Warning,3,"C00132, C00083, C00166",6 digits only
+9,orders,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),Accuracy,Critical,18,"ORD002103, ORD002305, ORD002004","recompute and compare, tolerance 0.01 -> quarantine"
+10,orders,quantity,quantity is zero or negative,Accuracy,Critical,10,"ORD000469, ORD001296, ORD001459",quantity > 0 -> quarantine (ask client if negative = return)
+11,orders,delivery_minutes,"delivery_minutes above 120 (impossible, hours not minutes)",Accuracy,Critical,6,"ORD001037, ORD002101, ORD000455",delivery_minutes <= 120 -> quarantine
+12,orders,customer_id,customer_id is blank,Completeness,Critical,18,"ORD002255, ORD000701, ORD000997",customer_id NOT NULL -> quarantine
+13,orders,delivery_minutes,DELIVERED order has no delivery_minutes,Completeness,Critical,8,"ORD001554, ORD001800, ORD000731",DELIVERED requires delivery_minutes -> quarantine
+14,orders,order_ts,order_ts is blank,Completeness,Critical,1,ORD000362,order_ts NOT NULL -> quarantine
+15,orders,order_id,DELIVERED order has no payment row,Consistency,Critical,27,"ORD001113, ORD000737, ORD001398",list in reconciliation table (revenue not confirmed by gateway)
+16,orders,product_id,product_id not found in products,Consistency,Critical,9,"ORD000986, ORD001058, ORD001685",FK check against products -> quarantine
+17,orders,store_id,store_id not found in stores,Consistency,Critical,5,"ORD001799, ORD001046, ORD001492",FK check against stores -> quarantine
+18,orders,order_ts,order_ts is in the future,Timeliness,Critical,7,"ORD002119, ORD001693, ORD001089",order_ts <= 2026-10-01 -> quarantine
+19,orders,order_id,order_id appears more than once (repeat of an earlier row),Uniqueness,Critical,12,"ORD001462, ORD001441, ORD001692","keep the first row, quarantine repeats (they would double revenue)"
+20,orders,order_ts,order_ts is not a valid timestamp,Validity,Critical,5,"ORD000403, ORD001610, ORD000534",order_ts must parse as YYYY-MM-DD HH:MM:SS -> quarantine
+21,orders,order_status,order_status not in DELIVERED/CANCELLED/RETURNED,Validity,Critical,3,"ORD000500, ORD001970, ORD001637",reject unknown statuses -> quarantine
+22,orders,discount_pct,discount_pct outside 0-100,Validity,Critical,3,"ORD002103, ORD001468, ORD001237",0 <= discount_pct <= 100 -> quarantine
+23,orders,payment_mode,payment_mode has wrong casing/spaces,Validity,Warning,7,"ORD000159, ORD001364, ORD000433",map to the standard value (upi -> UPI)
+24,orders,payment_mode,"payment_mode is a typo or short form (Cashh, cod)",Validity,Warning,3,"ORD001812, ORD001414, ORD001640",lookup map: cod/Cashh -> Cash on Delivery (confirm with client)
+25,orders,order_status,order_status has wrong casing/spaces,Validity,Warning,2,"ORD001066, ORD000153","TRIM + UPPER, then accept"
+26,payments,amount_paid,"amount_paid is missing, non-numeric or not positive",Accuracy,Critical,10,"PAY0001568, PAY0002175, PAY0000116",amount_paid > 0
+27,payments,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),Consistency,Critical,44,"PAY0002092, PAY0000177, PAY0000259",list in reconciliation table; finance decides if it counts as revenue
+28,payments,amount_paid,SUCCESS payment amount does not equal the order's order_amount,Consistency,Critical,14,"PAY0001568, PAY0000354, PAY0000779",amount_paid = order_amount for SUCCESS -> reconciliation table
+29,payments,order_id,payment refers to an order_id that is not in orders,Consistency,Critical,8,"PAY0002219, PAY0002220, PAY0002223",FK check against orders -> quarantine
+30,payments,order_id,SUCCESS payment belongs to an order with an invalid status (Pending??),Consistency,Critical,3,"PAY0001870, PAY0001966, PAY0000688",reconciliation table; resolve the order status first
+31,payments,payment_ts,payment_ts is in the future,Timeliness,Critical,7,"PAY0000396, PAY0000127, PAY0001908",payment_ts <= extract date
+32,payments,payment_id,payment_id appears more than once,Uniqueness,Critical,4,"PAY0000509, PAY0001651, PAY0002000","keep first, quarantine repeats"
+33,payments,payment_mode,payment_mode has wrong casing/spaces,Validity,Warning,7,"PAY0002188, PAY0001850, PAY0000817",map to the standard value
+34,payments,payment_mode,"payment_mode is a typo or short form (Cashh, cod)",Validity,Warning,3,"PAY0001954, PAY0000522, PAY0000044",lookup map: cod/Cashh -> Cash on Delivery (confirm with client)
+35,products,cost_price,cost_price is higher than mrp,Accuracy,Critical,5,"P0019, P0073, P0074",cost_price <= mrp
+36,products,mrp,mrp missing or not positive,Accuracy,Critical,1,P0109,mrp > 0
+37,products,category,category is blank,Completeness,Critical,3,"P0051, P0060, P0068",category NOT NULL (needed for margin by category)
+38,products,product_id,product_id appears more than once (all copies shown),Uniqueness,Critical,4,"P0030, P0140, P0030",keep the row whose name does not end with '(old)'; one row per product
+39,products,product_name,"old catalogue row left in the file (name ends with '(old)', different mrp)",Consistency,Warning,2,"P0030, P0140","drop '(old)' rows from dim_product, keep for audit in raw"
+40,stores,capacity_orders_per_day,capacity_orders_per_day is zero or missing,Accuracy,Critical,1,S12,capacity > 0 (needed for the capacity bonus check)
+41,stores,zone,zone is blank (store cannot be placed in a zone),Completeness,Critical,1,S07,zone NOT NULL (daily revenue by zone needs it)

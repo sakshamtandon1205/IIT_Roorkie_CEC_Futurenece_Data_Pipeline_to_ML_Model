@@ -1,0 +1,315 @@
+file,csv_line,row_key,column,problem,value,dimension,severity
+orders,36,ORD002255,customer_id,customer_id is blank,,Completeness,Critical
+orders,251,ORD000701,customer_id,customer_id is blank,,Completeness,Critical
+orders,550,ORD000997,customer_id,customer_id is blank,,Completeness,Critical
+orders,635,ORD000580,customer_id,customer_id is blank,,Completeness,Critical
+orders,821,ORD002019,customer_id,customer_id is blank,,Completeness,Critical
+orders,940,ORD002262,customer_id,customer_id is blank,,Completeness,Critical
+orders,970,ORD002149,customer_id,customer_id is blank,,Completeness,Critical
+orders,989,ORD002367,customer_id,customer_id is blank,,Completeness,Critical
+orders,1192,ORD001332,customer_id,customer_id is blank,,Completeness,Critical
+orders,1342,ORD001918,customer_id,customer_id is blank,,Completeness,Critical
+orders,1389,ORD002156,customer_id,customer_id is blank,,Completeness,Critical
+orders,1399,ORD000583,customer_id,customer_id is blank,,Completeness,Critical
+orders,1461,ORD000790,customer_id,customer_id is blank,,Completeness,Critical
+orders,1583,ORD000764,customer_id,customer_id is blank,,Completeness,Critical
+orders,1597,ORD002219,customer_id,customer_id is blank,,Completeness,Critical
+orders,1814,ORD001532,customer_id,customer_id is blank,,Completeness,Critical
+orders,1823,ORD000022,customer_id,customer_id is blank,,Completeness,Critical
+orders,2150,ORD001373,customer_id,customer_id is blank,,Completeness,Critical
+orders,899,ORD000362,order_ts,order_ts is blank,,Completeness,Critical
+orders,162,ORD001554,delivery_minutes,DELIVERED order has no delivery_minutes,,Completeness,Critical
+orders,253,ORD001800,delivery_minutes,DELIVERED order has no delivery_minutes,,Completeness,Critical
+orders,652,ORD000731,delivery_minutes,DELIVERED order has no delivery_minutes,,Completeness,Critical
+orders,716,ORD001277,delivery_minutes,DELIVERED order has no delivery_minutes,,Completeness,Critical
+orders,1090,ORD000326,delivery_minutes,DELIVERED order has no delivery_minutes,,Completeness,Critical
+orders,1524,ORD001515,delivery_minutes,DELIVERED order has no delivery_minutes,,Completeness,Critical
+orders,1826,ORD002229,delivery_minutes,DELIVERED order has no delivery_minutes,,Completeness,Critical
+orders,2035,ORD000878,delivery_minutes,DELIVERED order has no delivery_minutes,,Completeness,Critical
+orders,271,ORD001462,order_id,order_id appears more than once (repeat of an earlier row),ORD001462,Uniqueness,Critical
+orders,1121,ORD001441,order_id,order_id appears more than once (repeat of an earlier row),ORD001441,Uniqueness,Critical
+orders,1318,ORD001692,order_id,order_id appears more than once (repeat of an earlier row),ORD001692,Uniqueness,Critical
+orders,1642,ORD002129,order_id,order_id appears more than once (repeat of an earlier row),ORD002129,Uniqueness,Critical
+orders,2059,ORD001239,order_id,order_id appears more than once (repeat of an earlier row),ORD001239,Uniqueness,Critical
+orders,2088,ORD000783,order_id,order_id appears more than once (repeat of an earlier row),ORD000783,Uniqueness,Critical
+orders,2146,ORD000539,order_id,order_id appears more than once (repeat of an earlier row),ORD000539,Uniqueness,Critical
+orders,2182,ORD001434,order_id,order_id appears more than once (repeat of an earlier row),ORD001434,Uniqueness,Critical
+orders,2204,ORD001326,order_id,order_id appears more than once (repeat of an earlier row),ORD001326,Uniqueness,Critical
+orders,2213,ORD001549,order_id,order_id appears more than once (repeat of an earlier row),ORD001549,Uniqueness,Critical
+orders,2328,ORD001870,order_id,order_id appears more than once (repeat of an earlier row),ORD001870,Uniqueness,Critical
+orders,2395,ORD001110,order_id,order_id appears more than once (repeat of an earlier row),ORD001110,Uniqueness,Critical
+orders,143,ORD001066,order_status,order_status has wrong casing/spaces,delivered,Validity,Warning
+orders,1881,ORD000153,order_status,order_status has wrong casing/spaces,delivered,Validity,Warning
+orders,747,ORD000500,order_status,order_status not in DELIVERED/CANCELLED/RETURNED,Pending??,Validity,Critical
+orders,2027,ORD001970,order_status,order_status not in DELIVERED/CANCELLED/RETURNED,Pending??,Validity,Critical
+orders,2129,ORD001637,order_status,order_status not in DELIVERED/CANCELLED/RETURNED,Pending??,Validity,Critical
+orders,886,ORD000159,payment_mode,payment_mode has wrong casing/spaces,upi,Validity,Warning
+orders,1473,ORD001364,payment_mode,payment_mode has wrong casing/spaces,CARD,Validity,Warning
+orders,2003,ORD000433,payment_mode,payment_mode has wrong casing/spaces,upi,Validity,Warning
+orders,2017,ORD002356,payment_mode,payment_mode has wrong casing/spaces,UPI ,Validity,Warning
+orders,2296,ORD001874,payment_mode,payment_mode has wrong casing/spaces,UPI ,Validity,Warning
+orders,2382,ORD000934,payment_mode,payment_mode has wrong casing/spaces,upi,Validity,Warning
+orders,2404,ORD000691,payment_mode,payment_mode has wrong casing/spaces,upi,Validity,Warning
+orders,48,ORD001812,payment_mode,"payment_mode is a typo or short form (Cashh, cod)",Cashh,Validity,Warning
+orders,563,ORD001414,payment_mode,"payment_mode is a typo or short form (Cashh, cod)",Cashh,Validity,Warning
+orders,2116,ORD001640,payment_mode,"payment_mode is a typo or short form (Cashh, cod)",cod,Validity,Warning
+orders,66,ORD002103,discount_pct,discount_pct outside 0-100,250,Validity,Critical
+orders,2131,ORD001468,discount_pct,discount_pct outside 0-100,120,Validity,Critical
+orders,2292,ORD001237,discount_pct,discount_pct outside 0-100,150,Validity,Critical
+orders,273,ORD000403,order_ts,order_ts is not a valid timestamp,N/A,Validity,Critical
+orders,513,ORD001610,order_ts,order_ts is not a valid timestamp,2026-13-05 11:00:00,Validity,Critical
+orders,825,ORD000534,order_ts,order_ts is not a valid timestamp,2026-13-05 11:00:00,Validity,Critical
+orders,1100,ORD002012,order_ts,order_ts is not a valid timestamp,31/09/2026 10:00,Validity,Critical
+orders,2114,ORD000946,order_ts,order_ts is not a valid timestamp,31/09/2026 10:00,Validity,Critical
+orders,127,ORD000469,quantity,quantity is zero or negative,0,Accuracy,Critical
+orders,801,ORD001296,quantity,quantity is zero or negative,-2,Accuracy,Critical
+orders,816,ORD001459,quantity,quantity is zero or negative,-3,Accuracy,Critical
+orders,860,ORD000867,quantity,quantity is zero or negative,-1,Accuracy,Critical
+orders,1021,ORD000462,quantity,quantity is zero or negative,-3,Accuracy,Critical
+orders,1032,ORD002360,quantity,quantity is zero or negative,0,Accuracy,Critical
+orders,1198,ORD001724,quantity,quantity is zero or negative,0,Accuracy,Critical
+orders,1429,ORD000099,quantity,quantity is zero or negative,0,Accuracy,Critical
+orders,1821,ORD001124,quantity,quantity is zero or negative,-1,Accuracy,Critical
+orders,2365,ORD001384,quantity,quantity is zero or negative,-1,Accuracy,Critical
+orders,66,ORD002103,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),492.0,Accuracy,Critical
+orders,312,ORD002305,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),6757.5,Accuracy,Critical
+orders,480,ORD002004,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),6720.0,Accuracy,Critical
+orders,771,ORD000845,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),4712.0,Accuracy,Critical
+orders,812,ORD000964,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),8370.0,Accuracy,Critical
+orders,1027,ORD002298,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),305.1,Accuracy,Critical
+orders,1029,ORD002031,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),3210.0,Accuracy,Critical
+orders,1285,ORD000801,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),5467.5,Accuracy,Critical
+orders,1439,ORD000880,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),517.65,Accuracy,Critical
+orders,1641,ORD001274,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),110.0,Accuracy,Critical
+orders,1644,ORD000677,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),394.2,Accuracy,Critical
+orders,1717,ORD002223,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),36.58,Accuracy,Critical
+orders,1720,ORD002128,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),265.5,Accuracy,Critical
+orders,1748,ORD001624,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),9576.0,Accuracy,Critical
+orders,1903,ORD002244,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),108.3,Accuracy,Critical
+orders,1927,ORD001755,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),730.0,Accuracy,Critical
+orders,2131,ORD001468,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),547.2,Accuracy,Critical
+orders,2292,ORD001237,order_amount,order_amount differs from quantity x unit_price x (1 - discount/100),2408.0,Accuracy,Critical
+orders,275,ORD001037,delivery_minutes,"delivery_minutes above 120 (impossible, hours not minutes)",480,Accuracy,Critical
+orders,511,ORD002101,delivery_minutes,"delivery_minutes above 120 (impossible, hours not minutes)",480,Accuracy,Critical
+orders,626,ORD000455,delivery_minutes,"delivery_minutes above 120 (impossible, hours not minutes)",1440,Accuracy,Critical
+orders,2075,ORD001104,delivery_minutes,"delivery_minutes above 120 (impossible, hours not minutes)",900,Accuracy,Critical
+orders,2279,ORD000020,delivery_minutes,"delivery_minutes above 120 (impossible, hours not minutes)",900,Accuracy,Critical
+orders,2368,ORD000424,delivery_minutes,"delivery_minutes above 120 (impossible, hours not minutes)",480,Accuracy,Critical
+orders,207,ORD000986,product_id,product_id not found in products,P9455,Consistency,Critical
+orders,305,ORD001058,product_id,product_id not found in products,P9212,Consistency,Critical
+orders,590,ORD001685,product_id,product_id not found in products,P9816,Consistency,Critical
+orders,1218,ORD000070,product_id,product_id not found in products,P9893,Consistency,Critical
+orders,1546,ORD000789,product_id,product_id not found in products,P9989,Consistency,Critical
+orders,1640,ORD000596,product_id,product_id not found in products,P9784,Consistency,Critical
+orders,1834,ORD000134,product_id,product_id not found in products,P9822,Consistency,Critical
+orders,1954,ORD000965,product_id,product_id not found in products,P9399,Consistency,Critical
+orders,1982,ORD002179,product_id,product_id not found in products,P9761,Consistency,Critical
+orders,735,ORD001799,store_id,store_id not found in stores,S99,Consistency,Critical
+orders,742,ORD001046,store_id,store_id not found in stores,S17,Consistency,Critical
+orders,831,ORD001492,store_id,store_id not found in stores,S17,Consistency,Critical
+orders,1011,ORD001275,store_id,store_id not found in stores,S17,Consistency,Critical
+orders,1955,ORD002126,store_id,store_id not found in stores,S00,Consistency,Critical
+orders,140,ORD002119,order_ts,order_ts is in the future,2027-01-01 09:00:00,Timeliness,Critical
+orders,288,ORD001693,order_ts,order_ts is in the future,2026-10-21 10:15:00,Timeliness,Critical
+orders,363,ORD001089,order_ts,order_ts is in the future,2026-10-21 10:15:00,Timeliness,Critical
+orders,426,ORD001121,order_ts,order_ts is in the future,2026-11-02 18:40:00,Timeliness,Critical
+orders,1122,ORD001765,order_ts,order_ts is in the future,2027-01-01 09:00:00,Timeliness,Critical
+orders,1607,ORD001965,order_ts,order_ts is in the future,2026-11-02 18:40:00,Timeliness,Critical
+orders,2067,ORD001725,order_ts,order_ts is in the future,2027-01-01 09:00:00,Timeliness,Critical
+payments,1032,PAY0000509,payment_id,payment_id appears more than once,PAY0000509,Uniqueness,Critical
+payments,1855,PAY0001651,payment_id,payment_id appears more than once,PAY0001651,Uniqueness,Critical
+payments,1877,PAY0002000,payment_id,payment_id appears more than once,PAY0002000,Uniqueness,Critical
+payments,2119,PAY0000755,payment_id,payment_id appears more than once,PAY0000755,Uniqueness,Critical
+payments,96,PAY0002188,payment_mode,payment_mode has wrong casing/spaces,upi,Validity,Warning
+payments,609,PAY0001850,payment_mode,payment_mode has wrong casing/spaces,upi,Validity,Warning
+payments,896,PAY0000817,payment_mode,payment_mode has wrong casing/spaces,upi,Validity,Warning
+payments,910,PAY0001359,payment_mode,payment_mode has wrong casing/spaces,CARD,Validity,Warning
+payments,1320,PAY0002208,payment_mode,payment_mode has wrong casing/spaces,upi,Validity,Warning
+payments,1367,PAY0002113,payment_mode,payment_mode has wrong casing/spaces,UPI ,Validity,Warning
+payments,1419,PAY0001862,payment_mode,payment_mode has wrong casing/spaces,UPI ,Validity,Warning
+payments,822,PAY0001954,payment_mode,"payment_mode is a typo or short form (Cashh, cod)",cod,Validity,Warning
+payments,1454,PAY0000522,payment_mode,"payment_mode is a typo or short form (Cashh, cod)",Cashh,Validity,Warning
+payments,1625,PAY0000044,payment_mode,"payment_mode is a typo or short form (Cashh, cod)",Cashh,Validity,Warning
+payments,71,PAY0001568,amount_paid,"amount_paid is missing, non-numeric or not positive",-43.05,Accuracy,Critical
+payments,346,PAY0002175,amount_paid,"amount_paid is missing, non-numeric or not positive",-188.7,Accuracy,Critical
+payments,373,PAY0000116,amount_paid,"amount_paid is missing, non-numeric or not positive",0.0,Accuracy,Critical
+payments,434,PAY0000751,amount_paid,"amount_paid is missing, non-numeric or not positive",-1593.0,Accuracy,Critical
+payments,529,PAY0000944,amount_paid,"amount_paid is missing, non-numeric or not positive",-1279.65,Accuracy,Critical
+payments,653,PAY0000791,amount_paid,"amount_paid is missing, non-numeric or not positive",-500.65,Accuracy,Critical
+payments,861,PAY0001111,amount_paid,"amount_paid is missing, non-numeric or not positive",0.0,Accuracy,Critical
+payments,1263,PAY0001322,amount_paid,"amount_paid is missing, non-numeric or not positive",0.0,Accuracy,Critical
+payments,1782,PAY0000954,amount_paid,"amount_paid is missing, non-numeric or not positive",0.0,Accuracy,Critical
+payments,2173,PAY0000737,amount_paid,"amount_paid is missing, non-numeric or not positive",-394.0,Accuracy,Critical
+payments,146,PAY0000396,payment_ts,payment_ts is in the future,2026-11-02 18:40:52,Timeliness,Critical
+payments,309,PAY0000127,payment_ts,payment_ts is in the future,2027-01-01 09:01:37,Timeliness,Critical
+payments,411,PAY0001908,payment_ts,payment_ts is in the future,2027-01-01 09:01:46,Timeliness,Critical
+payments,988,PAY0001037,payment_ts,payment_ts is in the future,2027-01-01 09:01:02,Timeliness,Critical
+payments,1262,PAY0000337,payment_ts,payment_ts is in the future,2026-10-21 10:15:38,Timeliness,Critical
+payments,1640,PAY0001488,payment_ts,payment_ts is in the future,2026-11-02 18:41:31,Timeliness,Critical
+payments,1851,PAY0000267,payment_ts,payment_ts is in the future,2026-10-21 10:16:40,Timeliness,Critical
+payments,188,PAY0002219,order_id,payment refers to an order_id that is not in orders,ORD970544,Consistency,Critical
+payments,689,PAY0002220,order_id,payment refers to an order_id that is not in orders,ORD968496,Consistency,Critical
+payments,966,PAY0002223,order_id,payment refers to an order_id that is not in orders,ORD988106,Consistency,Critical
+payments,1149,PAY0002221,order_id,payment refers to an order_id that is not in orders,ORD941071,Consistency,Critical
+payments,1447,PAY0002224,order_id,payment refers to an order_id that is not in orders,ORD981600,Consistency,Critical
+payments,1790,PAY0002218,order_id,payment refers to an order_id that is not in orders,ORD997176,Consistency,Critical
+payments,1974,PAY0002222,order_id,payment refers to an order_id that is not in orders,ORD953136,Consistency,Critical
+payments,2216,PAY0002217,order_id,payment refers to an order_id that is not in orders,ORD966342,Consistency,Critical
+payments,71,PAY0001568,amount_paid,SUCCESS payment amount does not equal the order's order_amount,-43.05,Consistency,Critical
+payments,306,PAY0000354,amount_paid,SUCCESS payment amount does not equal the order's order_amount,455.0,Consistency,Critical
+payments,431,PAY0000779,amount_paid,SUCCESS payment amount does not equal the order's order_amount,2.6,Consistency,Critical
+payments,697,PAY0000323,amount_paid,SUCCESS payment amount does not equal the order's order_amount,182.95,Consistency,Critical
+payments,768,PAY0001167,amount_paid,SUCCESS payment amount does not equal the order's order_amount,452.35,Consistency,Critical
+payments,772,PAY0001499,amount_paid,SUCCESS payment amount does not equal the order's order_amount,349.3,Consistency,Critical
+payments,933,PAY0000909,amount_paid,SUCCESS payment amount does not equal the order's order_amount,103.0,Consistency,Critical
+payments,994,PAY0000586,amount_paid,SUCCESS payment amount does not equal the order's order_amount,2.6,Consistency,Critical
+payments,1110,PAY0000161,amount_paid,SUCCESS payment amount does not equal the order's order_amount,232.2,Consistency,Critical
+payments,1411,PAY0002183,amount_paid,SUCCESS payment amount does not equal the order's order_amount,955.4,Consistency,Critical
+payments,1625,PAY0000044,amount_paid,SUCCESS payment amount does not equal the order's order_amount,353.0,Consistency,Critical
+payments,1651,PAY0001813,amount_paid,SUCCESS payment amount does not equal the order's order_amount,402.4,Consistency,Critical
+payments,1924,PAY0001139,amount_paid,SUCCESS payment amount does not equal the order's order_amount,353.0,Consistency,Critical
+payments,1984,PAY0000429,amount_paid,SUCCESS payment amount does not equal the order's order_amount,218.2,Consistency,Critical
+payments,12,PAY0002092,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,48,PAY0000177,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,108,PAY0000259,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,122,PAY0002025,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,151,PAY0000766,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,156,PAY0001838,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,167,PAY0000851,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,234,PAY0000440,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,391,PAY0001894,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,402,PAY0001704,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,432,PAY0000762,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,552,PAY0001025,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,567,PAY0000610,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,602,PAY0000247,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,645,PAY0000275,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,736,PAY0000131,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,814,PAY0001427,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,818,PAY0000555,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,840,PAY0001379,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,851,PAY0000957,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,854,PAY0002065,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,926,PAY0001367,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,945,PAY0000590,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1033,PAY0000063,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1065,PAY0000748,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1082,PAY0001123,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1134,PAY0001085,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1200,PAY0001795,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1364,PAY0002110,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1464,PAY0001974,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1690,PAY0001060,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1699,PAY0000490,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1723,PAY0001212,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1764,PAY0001726,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1771,PAY0001426,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1774,PAY0002010,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1880,PAY0000632,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1886,PAY0001081,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1938,PAY0000961,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,1985,PAY0000558,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,2000,PAY0001598,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,2061,PAY0000235,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,2187,PAY0001249,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,2210,PAY0001029,payment_status,payment FAILED but the order is DELIVERED (revenue not collected),FAILED,Consistency,Critical
+payments,972,PAY0001870,order_id,SUCCESS payment belongs to an order with an invalid status (Pending??),ORD001970,Consistency,Critical
+payments,1451,PAY0001966,order_id,SUCCESS payment belongs to an order with an invalid status (Pending??),ORD001637,Consistency,Critical
+payments,1461,PAY0000688,order_id,SUCCESS payment belongs to an order with an invalid status (Pending??),ORD000500,Consistency,Critical
+orders,77,ORD001113,order_id,DELIVERED order has no payment row,ORD001113,Consistency,Critical
+orders,103,ORD000737,order_id,DELIVERED order has no payment row,ORD000737,Consistency,Critical
+orders,277,ORD001398,order_id,DELIVERED order has no payment row,ORD001398,Consistency,Critical
+orders,321,ORD002078,order_id,DELIVERED order has no payment row,ORD002078,Consistency,Critical
+orders,461,ORD001570,order_id,DELIVERED order has no payment row,ORD001570,Consistency,Critical
+orders,548,ORD000994,order_id,DELIVERED order has no payment row,ORD000994,Consistency,Critical
+orders,665,ORD000984,order_id,DELIVERED order has no payment row,ORD000984,Consistency,Critical
+orders,721,ORD000504,order_id,DELIVERED order has no payment row,ORD000504,Consistency,Critical
+orders,839,ORD001881,order_id,DELIVERED order has no payment row,ORD001881,Consistency,Critical
+orders,978,ORD000525,order_id,DELIVERED order has no payment row,ORD000525,Consistency,Critical
+orders,1024,ORD000805,order_id,DELIVERED order has no payment row,ORD000805,Consistency,Critical
+orders,1248,ORD001218,order_id,DELIVERED order has no payment row,ORD001218,Consistency,Critical
+orders,1263,ORD001292,order_id,DELIVERED order has no payment row,ORD001292,Consistency,Critical
+orders,1270,ORD002178,order_id,DELIVERED order has no payment row,ORD002178,Consistency,Critical
+orders,1340,ORD001730,order_id,DELIVERED order has no payment row,ORD001730,Consistency,Critical
+orders,1379,ORD002242,order_id,DELIVERED order has no payment row,ORD002242,Consistency,Critical
+orders,1438,ORD000652,order_id,DELIVERED order has no payment row,ORD000652,Consistency,Critical
+orders,1474,ORD000085,order_id,DELIVERED order has no payment row,ORD000085,Consistency,Critical
+orders,1628,ORD000566,order_id,DELIVERED order has no payment row,ORD000566,Consistency,Critical
+orders,1727,ORD000895,order_id,DELIVERED order has no payment row,ORD000895,Consistency,Critical
+orders,2021,ORD001645,order_id,DELIVERED order has no payment row,ORD001645,Consistency,Critical
+orders,2069,ORD000466,order_id,DELIVERED order has no payment row,ORD000466,Consistency,Critical
+orders,2218,ORD000961,order_id,DELIVERED order has no payment row,ORD000961,Consistency,Critical
+orders,2223,ORD000673,order_id,DELIVERED order has no payment row,ORD000673,Consistency,Critical
+orders,2237,ORD002326,order_id,DELIVERED order has no payment row,ORD002326,Consistency,Critical
+orders,2267,ORD000127,order_id,DELIVERED order has no payment row,ORD000127,Consistency,Critical
+orders,2350,ORD001284,order_id,DELIVERED order has no payment row,ORD001284,Consistency,Critical
+customers,30,C00103,customer_id,customer_id appears more than once (all copies shown),C00103,Uniqueness,Critical
+customers,46,C00103,customer_id,customer_id appears more than once (all copies shown),C00103,Uniqueness,Critical
+customers,108,C00252,customer_id,customer_id appears more than once (all copies shown),C00252,Uniqueness,Critical
+customers,144,C00036,customer_id,customer_id appears more than once (all copies shown),C00036,Uniqueness,Critical
+customers,156,C00226,customer_id,customer_id appears more than once (all copies shown),C00226,Uniqueness,Critical
+customers,210,C00313,customer_id,customer_id appears more than once (all copies shown),C00313,Uniqueness,Critical
+customers,215,C00252,customer_id,customer_id appears more than once (all copies shown),C00252,Uniqueness,Critical
+customers,246,C00226,customer_id,customer_id appears more than once (all copies shown),C00226,Uniqueness,Critical
+customers,266,C00036,customer_id,customer_id appears more than once (all copies shown),C00036,Uniqueness,Critical
+customers,382,C00313,customer_id,customer_id appears more than once (all copies shown),C00313,Uniqueness,Critical
+customers,4,C00355,city,city is blank,,Completeness,Warning
+customers,202,C00394,city,city is blank,,Completeness,Warning
+customers,276,C00233,city,city is blank,,Completeness,Warning
+customers,293,C00142,city,city is blank,,Completeness,Warning
+customers,310,C00328,city,city is blank,,Completeness,Warning
+customers,370,C00219,city,city is blank,,Completeness,Warning
+customers,2,C00199,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",SILVER,Consistency,Warning
+customers,40,C00171,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",SILVER,Consistency,Warning
+customers,43,C00133,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",BRONZE,Consistency,Warning
+customers,53,C00032,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",bronze,Consistency,Warning
+customers,99,C00031,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",bronze,Consistency,Warning
+customers,104,C00196,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",bronze,Consistency,Warning
+customers,169,C00136,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",BRONZE,Consistency,Warning
+customers,330,C00092,loyalty_tier,"loyalty_tier has inconsistent casing (BRONZE, bronze, SILVER)",BRONZE,Consistency,Warning
+customers,17,C00337,email,email format is invalid,N/A,Validity,Warning
+customers,24,C00307,email,email format is invalid,arjun.rao307example.com,Validity,Warning
+customers,79,C00063,email,email format is invalid,prakash.pillai63@example,Validity,Warning
+customers,81,C00045,email,email format is invalid,N/A,Validity,Warning
+customers,82,C00363,email,email format is invalid,lakshmi.naidu363example.com,Validity,Warning
+customers,92,C00310,email,email format is invalid,kiran.patil310@example,Validity,Warning
+customers,199,C00327,email,email format is invalid,N/A,Validity,Warning
+customers,240,C00112,email,email format is invalid,lakshmi.shetty112@example,Validity,Warning
+customers,337,C00193,email,email format is invalid,N/A,Validity,Warning
+customers,344,C00392,email,email format is invalid,pooja.murthy392example.com,Validity,Warning
+customers,365,C00062,email,email format is invalid,ritu.rao62example.com,Validity,Warning
+customers,390,C00067,email,email format is invalid,manoj.sharma67example.com,Validity,Warning
+customers,60,C00151,phone,phone is not exactly 10 digits,996292312,Validity,Warning
+customers,117,C00240,phone,phone is not exactly 10 digits,90917798,Validity,Warning
+customers,141,C00095,phone,phone is not exactly 10 digits,993802612,Validity,Warning
+customers,153,C00357,phone,phone is not exactly 10 digits,933977612,Validity,Warning
+customers,172,C00130,phone,phone is not exactly 10 digits,999560412,Validity,Warning
+customers,234,C00290,phone,phone is not exactly 10 digits,9804341,Validity,Warning
+customers,250,C00339,phone,phone is not exactly 10 digits,987920612,Validity,Warning
+customers,38,C00132,pincode,pincode is not exactly 6 digits,5600XX,Validity,Warning
+customers,109,C00083,pincode,pincode is not exactly 6 digits,5600XX,Validity,Warning
+customers,151,C00166,pincode,pincode is not exactly 6 digits,5600XX,Validity,Warning
+customers,86,C00400,signup_date,signup_date is in the future,2027-01-05,Timeliness,Critical
+customers,197,C00398,signup_date,signup_date is in the future,2026-11-12,Timeliness,Critical
+customers,239,C00038,signup_date,signup_date is in the future,2026-12-20,Timeliness,Critical
+customers,17,C00337,email,same email on two different customer_ids,N/A,Uniqueness,Warning
+customers,81,C00045,email,same email on two different customer_ids,N/A,Uniqueness,Warning
+customers,199,C00327,email,same email on two different customer_ids,N/A,Uniqueness,Warning
+customers,337,C00193,email,same email on two different customer_ids,N/A,Uniqueness,Warning
+products,31,P0030,product_id,product_id appears more than once (all copies shown),P0030,Uniqueness,Critical
+products,141,P0140,product_id,product_id appears more than once (all copies shown),P0140,Uniqueness,Critical
+products,152,P0030,product_id,product_id appears more than once (all copies shown),P0030,Uniqueness,Critical
+products,153,P0140,product_id,product_id appears more than once (all copies shown),P0140,Uniqueness,Critical
+products,152,P0030,product_name,"old catalogue row left in the file (name ends with '(old)', different mrp)",Kaveri Dairy Milk 5 (old),Consistency,Warning
+products,153,P0140,product_name,"old catalogue row left in the file (name ends with '(old)', different mrp)",CleanPro Detergent 15 (old),Consistency,Warning
+products,52,P0051,category,category is blank,,Completeness,Critical
+products,61,P0060,category,category is blank,,Completeness,Critical
+products,69,P0068,category,category is blank,,Completeness,Critical
+products,110,P0109,mrp,mrp missing or not positive,-203.0,Accuracy,Critical
+products,20,P0019,cost_price,cost_price is higher than mrp,264.0,Accuracy,Critical
+products,74,P0073,cost_price,cost_price is higher than mrp,334.8,Accuracy,Critical
+products,75,P0074,cost_price,cost_price is higher than mrp,420.0,Accuracy,Critical
+products,110,P0109,cost_price,cost_price is higher than mrp,162.5,Accuracy,Critical
+products,118,P0117,cost_price,cost_price is higher than mrp,92.4,Accuracy,Critical
+stores,8,S07,zone,zone is blank (store cannot be placed in a zone),,Completeness,Critical
+stores,13,S12,capacity_orders_per_day,capacity_orders_per_day is zero or missing,0,Accuracy,Critical
