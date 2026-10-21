@@ -6,6 +6,7 @@ Prints the audit and result tables so they can be screenshotted.
     python include/tools/show.py recon        payment reconciliation (ETL and ELT)
     python include/tools/show.py quarantine   newest quarantine file (personal data is masked)
     python include/tools/show.py exp          one screen of facts about the latest run of each DAG (experiments)
+    python include/tools/show.py rejected     rows rejected from the injected test rows (experiment 5)
     python include/tools/show.py inc          the 10 corrected orders and duplicate check after the increment load
     python include/tools/show.py mart         the six business questions from the ELT marts
 
@@ -99,6 +100,17 @@ def main(what):
         if "mart_daily_store_kpis" in tabs:
             print("\nrevenue of store S03 in the mart:", con.execute(
                 "SELECT ROUND(SUM(net_revenue),2) FROM mart_daily_store_kpis WHERE store_id='S03'").fetchone()[0])
+    elif what == "rejected":
+        prefix = sys.argv[2] if len(sys.argv) > 2 else "ORD9000"
+        print(f"rows whose key starts with {prefix}, as rejected by each pipeline (latest run only)\n")
+        print("=== ETL  etl_quarantine_log ===")
+        print(q(con, "SELECT row_key, failure_reason, run_id FROM etl_quarantine_log WHERE row_key LIKE ? AND run_id = "
+                     "(SELECT run_id FROM etl_quarantine_log ORDER BY logged_at DESC LIMIT 1) ORDER BY row_key",
+                prefix + "%").to_string(index=False))
+        print("\n=== ELT  elt_rejected_rows (view over staging) ===")
+        print(q(con, "SELECT row_key, failure_reason, _run_id AS run_id FROM elt_rejected_rows WHERE row_key LIKE ? AND _run_id = "
+                     "(SELECT _run_id FROM stg_orders WHERE _source_file = 'orders.csv' LIMIT 1) ORDER BY row_key",
+                prefix + "%").to_string(index=False))
     elif what == "inc":
         data = INCLUDE / "data" / "nammamart"
         base = pd.read_csv(data / "orders.csv", dtype=str, keep_default_na=False)
