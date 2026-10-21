@@ -346,7 +346,7 @@ I built both pipelines on the same six files. They gave the same answers on the 
 ### Top three risks of this design
 
 1. **Personal data in raw.** ELT raw holds customer names, emails and phone numbers exactly as received. That is the most sensitive object in the warehouse. Mitigation: a separate schema that only data engineering can read, encryption, a 90-day retention, and masking or tokenising the sensitive columns as they are loaded where the business does not need the original. This also supports the client's DPDP Act obligations.
-2. **A bad file quietly shrinks the marts.** In Experiment 7 the run stayed green and the revenue mart lost 91%. Mitigation: make a volume drop above 50% Critical so the DAG stops before the marts are rebuilt, add the per-store daily checks from Experiment 8, and make the ELT-vs-ETL style comparison against yesterday a failing check.
+2. **A bad file quietly shrinks the marts.** In Experiment 7 the run stayed green and the revenue mart lost 91%. Mitigation: make a volume drop above 50% Critical so the DAG stops before the marts are rebuilt, add the per-store daily checks from Experiment 8, and fail the run when total revenue moves by more than a set percentage from the previous day.
 3. **The platform is a single laptop-sized setup.** DuckDB takes one writer at a time, and Airflow on a laptop skips the 9 AM run when the machine is off (it happened on 20 October). Mitigation: an always-on Airflow, a warehouse that accepts concurrent writers, and an alert at the first failure and not after the retries.
 
 If the client chooses ETL instead, the changes I would insist on are a full-refresh mode, a rule for removing rows that no longer pass, and a raw archive of every file.
