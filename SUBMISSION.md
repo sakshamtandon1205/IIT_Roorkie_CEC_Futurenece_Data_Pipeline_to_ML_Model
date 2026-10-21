@@ -83,6 +83,20 @@ Critical rows go to quarantine with a reason. Warning rows are loaded and logged
 
 3. **Does a delivered order count as revenue if its payment failed or is missing?** Forty-four delivered orders have a FAILED payment and 27 have no payment row. My reconciliation table lists every one of them either way. The answer decides whether they stay in the revenue total.
 
+## Parts A and B: What I built
+
+The code is in three places. The two DAG files are `dags/nammamart_etl_saksham.py` and `dags/nammamart_elt_saksham.py`. The Python they call is in `include/nammamart/` (`config.py`, `checks.py`, `masking.py`, `warehouse.py`, `etl.py`, `elt.py`, `alerts.py`). The ELT transformations are SQL files in `include/sql/`. Both DAGs write to one DuckDB file, `include/warehouse_saksham.duckdb`, which is not committed. Both take two parameters when triggered: `load_increment` (off by default, loads the increment file) and `as_of` (the run date, default 2026-10-01, which is the morning the September export was taken).
+
+**ETL DAG (13 tasks).** Six extract tasks run in parallel, one per file and one for the increment file (it does nothing unless `load_increment` is on). `validate` applies the checks in Python and splits every file into passed and failed rows. `quarantine` writes the failed rows to `include/quarantine/saksham/<file>_failed_<run_id>.csv` with a `failure_reason` column, with name, email and phone masked. `transform` standardises values (trim, casing, `upi` and `UPI ` become `UPI`), removes duplicate customers and products, masks personal data, joins orders to customers, products and stores, and adds `order_date`, `net_revenue`, `gross_margin` and `within_15_min`. `load` writes the star schema inside one transaction: the three dimensions are rebuilt from the clean rows each run, and `etl_fact_orders` is upserted on `order_id`, so a re-run changes nothing. `reconcile` writes `etl_payment_reconciliation`, one row per mismatch with a reason (six types, such as a delivered order with no payment or a SUCCESS payment for a different amount). `report` builds `etl_daily_zone_revenue`, `etl_category_margin` and three more tables and prints them in the log. `audit` writes the `pipeline_runs` row.
+
+**ELT DAG (23 tasks).** Six `load_raw_*` tasks copy each file into `raw_*` tables with every column as text plus `_loaded_at`, `_source_file`, `_run_id` and `_row_num`. Bad rows are loaded too and nothing is deleted. Five `stage_*` tasks run SQL that casts, standardises, removes duplicates, masks personal data, applies the checks, and adds `dq_status` and `failure_reason`. `merge_increment` loads the increment file into raw (appended) and merges it into staging with `MERGE INTO` on `order_id`. `dq_results` writes the 63 check results (84 when the increment is loaded). `build_fact_view` makes the view that every mart reads, with passed orders only. Six mart tasks build `mart_daily_store_kpis`, `mart_category_margin`, `mart_delivery_sla`, `mart_payment_reconciliation`, `mart_top_customers` and `mart_revenue_by_payment_mode`. `compare_with_etl` checks the totals against ETL, `report` prints the business questions and `audit` writes the `pipeline_runs` row. No pandas is used for cleaning in ELT.
+
+**Idempotency, protection and history.** Running a DAG twice does not double-count revenue (Experiment 2). Rows that came from the increment file are not overwritten by a later run of the older `orders.csv`, so a correction stays corrected (Experiment 3). `etl_dim_customer_scd2` keeps the history of a customer's tier and address (bonus).
+
+### Do the ELT totals match the ETL totals?
+
+Yes, after the final clean runs. The comparison task prints MATCH for all five metrics: 2,460 fact rows, net revenue 1,211,087.30, gross margin 279,931.92, 2,228 delivered orders and 339 reconciliation mismatches (`final_elt_vs_etl_match`). The totals matched before the experiments and they differed afterwards only because of Experiment 9: two orders loaded into ETL under the wrong run date stayed there (see above). This is also the main structural difference between the two designs. ETL keeps whatever it has loaded until something removes it, and ELT recalculates from the latest raw load every time.
+
 ## Part C: Scheduling
 
 Both DAGs use `CronTriggerTimetable("0 9 * * 1-6", timezone="Asia/Kolkata")` and a timezone-aware `start_date` of `pendulum.datetime(2026, 9, 1, tz="Asia/Kolkata")`. I used the trigger timetable and not a plain cron string, because the timezone sits inside the schedule object and cannot be lost if someone changes the DAG's start date later.
@@ -98,6 +112,21 @@ Both DAGs use `CronTriggerTimetable("0 9 * * 1-6", timezone="Asia/Kolkata")` and
 **Why `catchup=False`?** The stand-up needs today's number, and an old number is no use to anyone. With catchup on, a restart after a long gap would start dozens of runs back to back for dates that no longer matter. The pipelines read the same files every time, so those runs would also rewrite the same rows again. I also set `max_active_runs=1`, because DuckDB allows only one writer, and two runs at once would fight over the file.
 
 **Retries and timeouts.** `default_args` has `retries=2`, `retry_delay=2 minutes` and `execution_timeout=10 minutes`. A short delay is enough for the faults that fix themselves, such as a file still being copied or the DuckDB file being locked for a moment. Ten minutes is far above the real run time, so a hung task is killed long before 9:30. A bad schema or a missing column is different: that can never fix itself, so the extract tasks raise `AirflowFailException`, which skips the retries and fails at once (Experiments 4 and 6).
+
+## Part D: Data quality dimensions
+
+I wrote 63 checks, with at least six in every dimension, and each one is in both pipelines (Python in `include/nammamart/checks.py` for ETL, SQL in `include/sql/10_chk_*.sql` to `14_chk_*.sql` and `30_dq_results.sql` for ELT). A Critical failure quarantines the row. A Warning failure loads the row and is only logged. Every check writes one row per run to `dq_results` with `run_id`, `dag_id`, `check_name`, `dimension`, `severity`, `rows_checked`, `rows_failed`, `status` (PASS, WARN or FAIL) and `checked_at`. On the clean data both pipelines give identical results for all 63 checks, with 24 in FAIL and 14 in WARN (screenshot 11).
+
+| Dimension | Critical (row is quarantined) | Warning (row loads, result is logged) |
+|---|---|---|
+| Completeness (8) | orders.customer_id_not_null, orders.delivered_has_delivery_minutes, orders.order_ts_not_null, products.category_not_null | customers.city_not_null, orders.volume_vs_last_run, payments.gateway_ref_present_for_non_cash, stores.zone_not_null |
+| Uniqueness (6) | customers.customer_id_unique, orders.order_id_unique, payments.payment_id_unique, products.product_id_unique, stores.store_id_unique | customers.email_unique_across_customers |
+| Validity (19) | customers.loyalty_tier_allowed, customers.signup_date_parses, orders.discount_pct_between_0_and_100, orders.order_status_allowed, orders.order_ts_parses, orders.payment_mode_known, payments.payment_mode_known, payments.payment_status_allowed, stores.zone_is_known | customers.email_format_valid, customers.is_active_is_y_or_n, customers.phone_is_10_digits, customers.pincode_is_6_digits, orders.order_status_casing, orders.payment_mode_standardised, payments.payment_mode_standardised, products.category_is_known, products.is_perishable_is_true_or_false, stores.pincode_is_6_digits |
+| Accuracy (11) | orders.delivery_minutes_at_most_120, orders.delivery_minutes_positive, orders.order_amount_matches_formula, orders.quantity_positive, payments.amount_paid_positive, products.cost_price_not_above_mrp, products.cost_price_positive, products.mrp_positive | orders.delivery_minutes_typical_8_to_35, orders.unit_price_matches_catalogue_mrp, stores.capacity_positive |
+| Consistency (12) | orders.customer_exists_in_customers, orders.product_exists_in_products, orders.store_exists_in_stores, payments.cancelled_order_has_no_payment, payments.order_exists_in_orders, payments.success_amount_equals_order_amount | customers.loyalty_tier_casing_consistent, orders.store_daily_orders_within_capacity, payments.delivered_order_payment_not_failed, payments.payment_not_before_order, payments.success_payment_has_valid_order_status, products.no_old_catalogue_rows |
+| Timeliness (7) | customers.signup_date_not_in_future, orders.order_ts_not_in_future, payments.payment_ts_not_in_future | orders.latest_order_within_1_day, orders.order_ts_inside_september, products.launch_date_not_in_future, stores.open_date_not_in_future |
+
+Severities follow the assignment: keys, status, timestamps and amounts are Critical, and casing, email and phone format and staleness are Warning. Two judgement calls are in the issues log: a store with a blank zone or a zero capacity is loaded with a Warning, because quarantining it would drop all of that store's orders.
 
 ## Part E: Data governance
 
@@ -203,17 +232,17 @@ After the clean runs, ETL loads 2,300 and not 2,310 because the ten corrected or
 
 **Where I saw it.** `show.py exp` (`exp02_rerun_counts`).
 
-**What I would change.** Report inserted and updated rows separately in `pipeline_runs`, so a re-run visibly shows zero new rows. For raw, load only new data and delete old runs on the retention schedule in Part E.
+**What I would change.** The `load` task log already prints inserted and updated rows separately, but `pipeline_runs` has one `rows_loaded` column. I would split it into inserted and updated, so a re-run visibly shows zero new rows. For raw, load only new data and delete old runs on the retention schedule in Part E.
 
 ### Experiment 3: Incremental load
 
 **Expected.** 150 orders inserted and 10 updated, with no duplicates.
 
-**Observed.** ETL extracted 5,372 rows (5,212 plus 160) and upserted 2,470. The fact table went from 2,310 to 2,460 rows, so 150 were new and 10 were updates. The ten corrected orders changed from DELIVERED to RETURNED, and the check for duplicates showed 2,460 rows and 2,460 distinct order ids. ELT did the same through `MERGE INTO` on `order_id` and also ended with 2,460 rows. I found a bug while testing this: a later normal run, without the increment, put the old DELIVERED rows back. I fixed it so that rows that came from the increment file are not overwritten by `orders.csv`. That is the reason ETL loads 2,300 and not 2,310 afterwards.
+**Observed.** ETL extracted 5,372 rows (5,212 plus 160) and upserted 2,470. The fact table went from 2,310 to 2,460 rows, so 150 were new and 10 were updates (the `load` log prints the two counts separately). The ten corrected orders changed from DELIVERED to RETURNED, and the check for duplicates showed 2,460 rows and 2,460 distinct order ids. ELT did the same through `MERGE INTO` on `order_id` and also ended with 2,460 rows. I found a bug while testing this: a later normal run, without the increment, put the old DELIVERED rows back. I fixed it so that rows that came from the increment file are not overwritten by `orders.csv`. That is the reason ETL loads 2,300 and not 2,310 afterwards.
 
 **Where I saw it.** `exp03_etl_load_log`, `exp03_elt_merge_log` and `show.py inc` (`exp03_increment_result`).
 
-**What I would change.** Better inserted and updated counters, as in Experiment 2.
+**What I would change.** Put the inserted and updated counts in `pipeline_runs`, as in Experiment 2.
 
 ### Experiment 4: Missing source file
 
@@ -297,36 +326,6 @@ After the clean runs, ETL loads 2,300 and not 2,310 because the ten corrected or
 
 The best covered pillar is schema, because a bad file stops the run in under 20 seconds and says why. The weakest is distribution. Experiment 8 showed that one store's revenue could fall by 95% and the run would stay green.
 
-## Do the ELT totals match the ETL totals?
-
-Yes, after the final clean runs. The comparison task prints MATCH for all five metrics: 2,460 fact rows, net revenue 1,211,087.30, gross margin 279,931.92, 2,228 delivered orders and 339 reconciliation mismatches (`final_elt_vs_etl_match`). The totals matched before the experiments and they differed afterwards only because of Experiment 9: two orders loaded into ETL under the wrong run date stayed there (see above). This is also the main structural difference between the two designs. ETL keeps whatever it has loaded until something removes it, and ELT recalculates from the latest raw load every time.
-
-## Business questions
-
-All six questions are answered with SQL and results from both pipelines in `docs/business_questions.md`. It is produced by `include/tools/answers.py`, which also compares the full ETL and ELT results for each question and prints whether they are identical.
-
-## The client's ten acceptance criteria
-
-| # | Criterion | Where it is shown |
-|---|---|---|
-| 1 | Ready before 9:30, Monday to Saturday | Part C, screenshots 04 and 07 |
-| 2 | No bad order in the finance tables | ETL fact table holds only passed rows; Experiments 5 and 8 |
-| 3 | Raw records kept untouched | ELT `raw_*` tables, Experiment 2 |
-| 4 | Bad rows set aside with a reason | Quarantine files, `etl_quarantine_log`, `elt_rejected_rows` (screenshot 10) |
-| 5 | Re-running never double-counts | Experiment 2 |
-| 6 | Increment loaded, status changes applied | Experiment 3 |
-| 7 | Orders reconcile with payments | `etl_payment_reconciliation`, `mart_payment_reconciliation` (screenshot 13) |
-| 8 | Personal data protected | Masking in Part E, question 4 |
-| 9 | Anyone can see whether the run worked | `pipeline_runs`, task logs (screenshot 12) |
-| 10 | Written recommendation | Part G |
-
-## Bonus items
-
-- Failure alert: `include/nammamart/alerts.py` posts to Slack with the webhook read from the Airflow Variable `SLACK_WEBHOOK_URL`. With no webhook set it prints the alert in the task log instead (`exp04_alert_in_log`).
-- SCD Type 2 customers: `etl_dim_customer_scd2` keeps `valid_from`, `valid_to` and `is_current` for loyalty tier, city, area and pincode.
-- Store capacity check: `orders.store_daily_orders_within_capacity` compares each store's daily orders with `capacity_orders_per_day`. No store went over capacity in this data, so the check passes.
-- Data quality trend chart: `python include/tools/dq_trend.py` draws `docs/dq_trend.html` from `dq_results` and `pipeline_runs` (`dq_trend.png`).
-
 ## Part G: Recommendation to Sameer (CTO)
 
 **Recommendation: build NammaMart on ELT, with a few ETL-style gates in front of it.** Keep every raw file as it arrives, do the cleaning and the business logic in SQL inside the warehouse, and stop the run before the marts are rebuilt when the input looks wrong.
@@ -350,3 +349,54 @@ I built both pipelines on the same six files. They gave the same answers on the 
 3. **The platform is a single laptop-sized setup.** DuckDB takes one writer at a time, and Airflow on a laptop skips the 9 AM run when the machine is off (it happened on 20 October). Mitigation: an always-on Airflow, a warehouse that accepts concurrent writers, and an alert at the first failure and not after the retries.
 
 If the client chooses ETL instead, the changes I would insist on are a full-refresh mode, a rule for removing rows that no longer pass, and a raw archive of every file.
+
+## Business questions
+
+All six questions are answered with SQL and results from both pipelines in [docs/business_questions.md](docs/business_questions.md). It is produced by `include/tools/answers.py`, which also compares the full ETL and ELT results for each question and prints whether they are identical.
+
+## The client's ten acceptance criteria
+
+| # | Criterion | Where it is shown |
+|---|---|---|
+| 1 | Ready before 9:30, Monday to Saturday | Part C, screenshots 04 and 07 |
+| 2 | No bad order in the finance tables | ETL fact table holds only passed rows; Experiments 5 and 8 |
+| 3 | Raw records kept untouched | ELT `raw_*` tables, Experiment 2 |
+| 4 | Bad rows set aside with a reason | Quarantine files, `etl_quarantine_log`, `elt_rejected_rows` (screenshot 10) |
+| 5 | Re-running never double-counts | Experiment 2 |
+| 6 | Increment loaded, status changes applied | Experiment 3 |
+| 7 | Orders reconcile with payments | `etl_payment_reconciliation`, `mart_payment_reconciliation` (screenshot 13) |
+| 8 | Personal data protected | Masking in Part E, question 4 |
+| 9 | Anyone can see whether the run worked | `pipeline_runs`, task logs (screenshot 12) |
+| 10 | Written recommendation | Part G |
+
+## Bonus items
+
+- Failure alert: `include/nammamart/alerts.py` posts to Slack with the webhook read from the Airflow Variable `SLACK_WEBHOOK_URL`. With no webhook set it prints the alert in the task log instead (`exp04_alert_in_log`).
+- SCD Type 2 customers: `etl_dim_customer_scd2` keeps `valid_from`, `valid_to` and `is_current` for loyalty tier, city, area and pincode.
+- Store capacity check: `orders.store_daily_orders_within_capacity` compares each store's daily orders with `capacity_orders_per_day`. No store went over capacity in this data, so the check passes.
+- Data quality trend chart: `python include/tools/dq_trend.py` draws `docs/dq_trend.html` from `dq_results` and `pipeline_runs` (`dq_trend.png`).
+
+## Screenshots
+
+All screenshots are in `screenshots/` and show my own machine. Files 03 to 13 are the ones the checklist asks for.
+
+| File | What it shows |
+|---|---|
+| 01_airflow_running | Airflow running locally with both DAGs listed |
+| 02_part0_profiling | Output of the profiling script |
+| 03_etl_graph_green, 06_elt_graph_green | Graph view of a green run of each DAG |
+| 04_etl_schedule, 07_elt_schedule | Schedule and next run time (9:00 AM IST, 03:30 UTC) |
+| 05_etl_report_log, 09_elt_report_log | The report task logs with the business questions |
+| 08_elt_vs_etl_match | ELT totals against ETL totals |
+| 10_quarantine_file | One quarantine file with `failure_reason` |
+| 11_dq_results | Quality scorecard from `dq_results` |
+| 12_pipeline_runs | The run audit table |
+| 13_reconciliation | The payment reconciliation tables |
+| exp01_* to exp10_* | Evidence for each observability experiment, named in Part F |
+| final_etl_graph_green, final_elt_graph_green | The last clean runs of both DAGs |
+| final_elt_vs_etl_match | The comparison task with MATCH on all five metrics |
+| dq_trend | The quality trend chart, from `include/tools/dq_trend.py` |
+
+## How to run it
+
+Start Airflow with `astro dev start` and open the UI address it prints (mine is `http://nammamart.localhost:6563`). Trigger `nammamart_etl_saksham` first and then `nammamart_elt_saksham`, because the ELT comparison task reads the ETL tables, and wait for each to finish since DuckDB allows one writer. The helper scripts in `include/tools/` read the warehouse without changing it: `show.py` prints the audit and result tables, `history.py` lists every run, `answers.py` writes `docs/business_questions.md`, `dq_trend.py` writes `docs/dq_trend.html`, and `experiment.py` applies and restores the changes for Experiments 4 to 8.
