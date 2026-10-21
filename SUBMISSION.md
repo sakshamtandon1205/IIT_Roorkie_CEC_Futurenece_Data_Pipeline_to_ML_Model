@@ -87,13 +87,13 @@ Critical rows go to quarantine with a reason. Warning rows are loaded and logged
 
 Both DAGs use `CronTriggerTimetable("0 9 * * 1-6", timezone="Asia/Kolkata")` and a timezone-aware `start_date` of `pendulum.datetime(2026, 9, 1, tz="Asia/Kolkata")`. I used the trigger timetable and not a plain cron string, because the timezone sits inside the schedule object and cannot be lost if someone changes the DAG's start date later.
 
-**What is the cron expression?** `0 9 * * 1-6`, read in Asia/Kolkata. That is 9:00 AM, Monday to Saturday, which leaves 30 minutes before the 9:30 stand-up. A run takes about 10 to 20 seconds on my laptop.
+**What is the cron expression?** `0 9 * * 1-6`, read in Asia/Kolkata. That is 9:00 AM, Monday to Saturday, which leaves 30 minutes before the 9:30 stand-up. An ETL run takes about 10 to 17 seconds on my laptop and an ELT run 30 to 50 seconds.
 
 **What time does the run show in UTC in the Airflow UI?** 03:30 UTC, because IST is UTC+5:30. The first scheduled run on my machine was `scheduled__2026-10-20T03:30:00+00:00`. It started on its own with nobody clicking Trigger. Screenshots 04 and 07 show the schedule for each DAG.
 
 **What would happen at 9 AM if I had left the `start_date` in UTC?** The cron would be read as UTC, so the run would fire at 09:00 UTC, which is 14:30 IST. The numbers would arrive five hours after the stand-up, and nothing would look broken in the UI. The same mistake also shifts the day boundary: a run at 14:30 IST would belong to a different logical date than the one the business expects.
 
-**What happens if my laptop or Docker is off at 9 AM?** Nothing runs while the scheduler is down. I checked Airflow's `CronTriggerTimetable` code to see what happens next with `catchup=False`: when the scheduler comes back it creates one run for the most recent missed 9 AM slot and skips the older ones. If I open the laptop at 11 AM, today's run starts straight away, and if it was shut for three days only the latest slot runs. That is the right behaviour for this client, but it also means a laptop is not a production scheduler. The client's 9:30 deadline needs an always-on Airflow, and I say so in the recommendation.
+**What happens if my laptop or Docker is off at 9 AM?** Nothing runs while the scheduler is down. I checked Airflow's `CronTriggerTimetable` code to see what happens next with `catchup=False`: when the scheduler comes back it creates one run for the most recent missed 9 AM slot and skips the older ones. If I open the laptop at 11 AM, today's run starts straight away, and if it was shut for three days only the latest slot runs. I saw this happen. `pipeline_runs` has one scheduled ELT run for the 20 October slot (`scheduled__2026-10-20T03:30:00`), and it started at 02:47 on 21 October, because my Docker was not running at 9 AM on the 20th. It is the only run for any day before the 21st, so Airflow did not create runs for the missed days since the 1 September start date. The 21 October slot ran by itself at 09:02 IST, about two minutes after the cron time, when Airflow was up. That is the right behaviour for this client, but it also means a laptop is not a production scheduler. The client's 9:30 deadline needs an always-on Airflow, and I say so in the recommendation.
 
 **Why `catchup=False`?** The stand-up needs today's number, and an old number is no use to anyone. With catchup on, a restart after a long gap would start dozens of runs back to back for dates that no longer matter. The pipelines read the same files every time, so those runs would also rewrite the same rows again. I also set `max_active_runs=1`, because DuckDB allows only one writer, and two runs at once would fight over the file.
 
@@ -165,3 +165,188 @@ SELECT COUNT(*) FROM elt_fact_orders WHERE order_id = 'ORD002255';   -- 0, it is
 In ETL, the raw row is the line in `orders.csv` (kept in git), the rejected copy is in `include/quarantine/saksham/orders_failed_<run_id>.csv` with a `failure_reason` column, and `etl_quarantine_log` records the file, the row key and the reason for every run. The proof that it is not in revenue is `SELECT COUNT(*) FROM etl_fact_orders WHERE order_id = 'ORD002255'` returning 0. ETL needs three places to answer (source file, quarantine file, log table), while ELT needs one database. The ETL quarantine copy has personal columns masked, so for the exact original I go back to the source file.
 
 **9. Change history: DELIVERED on 3 September, RETURNED on 1 October.** After the increment load, both pipelines overwrite the status with RETURNED, so `net_revenue` for that order becomes 0 and September revenue falls by its amount. In my data ten orders are corrected this way (for example ORD000017 on 1 September and ORD000271 on 4 September). See the Experiment 3 numbers in Part F. Finance wants both views: the September figure as it was reported at the time (so the stand-up numbers from September can still be explained) and the restated figure that reflects the return. I would keep both in two ways. First, the raw layer already holds both versions, because raw is append-only and the original DELIVERED row and the correcting row are both there with their `_run_id`. Second, I would add a table of order status history, one row per status change with the date it was received (the same idea as the SCD Type 2 customer table I built as a bonus). Then a report can ask for revenue "as of 30 September" or "as restated today".
+
+## Part F: Observability tests
+
+### Run audit
+
+The last task of each DAG is `audit`, with `trigger_rule="all_done"`, so it runs even when something upstream failed. It writes one row per run to `pipeline_runs` and then fails on purpose if any task failed. I added that second step after my first version showed a green run for a run that had a failed task, because `audit` was the last task and it succeeded. The numbers below come from `pipeline_runs` and `include/tools/history.py`. "Loaded" in ETL counts rows upserted into the fact table, not new rows.
+
+| Run | ETL extracted / loaded / quarantined | ETL status | ELT extracted / loaded / quarantined | ELT status |
+|---|---|---|---|---|
+| 1 and 2 Clean run (and re-run) | 5,212 / 2,310 / 162 | success | 5,212 / 5,212 / 162 | success |
+| 3 Increment loaded | 5,372 / 2,470 / 162 | success | 5,372 / 5,372 / 162 | success |
+| 5 Five bad rows added | 5,217 / 2,300 / 167 | success | 5,217 / 5,217 / 167 | success |
+| 6 Column renamed | 2,800 / 0 / 0 | failed | 2,800 / 2,800 / 0 | failed |
+| 7 Only 50 orders | 2,850 / 48 / 2,201 | success | 2,850 / 2,850 / 2,201 | success |
+| 8 S03 prices x100 | 5,212 / 2,153 / 310 | success | 5,212 / 5,212 / 310 | success |
+| 9 Run date set to 1 Nov | 5,212 / 2,302 / 158 | success | 5,212 / 5,212 / 158 | success |
+| Final clean run | 5,212 / 2,300 / 162 | success | 5,212 / 5,212 / 162 | success |
+
+After the clean runs, ETL loads 2,300 and not 2,310 because the ten corrected orders from the increment file are protected from being overwritten by the older `orders.csv` (see Experiment 3). Experiment 4 is not in the table, and I explain why in Experiment 10. Every run writes 63 rows to `dq_results` per pipeline (84 when the increment file is loaded, since it adds 21 checks). In every clean run, 24 checks are in FAIL and 14 in WARN, and ETL and ELT give identical results for every check.
+
+### Experiment 1: Happy path
+
+**Expected.** Both DAGs finish green. The five extract tasks (six with the increment file) run in parallel. Each file shows rows in, passed and quarantined.
+
+**Observed.** Both finished green. In the Gantt view the extract tasks overlap and `validate` starts only when the last one ends. ETL took 9 to 17 seconds, apart from the very first run, which took 134 seconds. ELT took 32 to 50 seconds, because it has more tasks: six raw loads, five staging tables, a merge, the checks, six marts and a comparison. ETL per file: orders 2,412 in, 2,310 passed, 102 quarantined; payments 2,228 in, 2,186 passed, 42 quarantined; customers 405 in, 397 passed, 8 quarantined; products 152 in, 142 passed, 10 quarantined; stores 15 in, 15 passed. That is 162 quarantined in all, and ELT rejected the same 162 in staging. ELT loaded all 5,212 rows to raw.
+
+**Where I saw it.** Graph and Gantt views (`exp01_etl_gantt`, `exp01_elt_gantt`), the `validate` log (`exp01_etl_validate_log`), `pipeline_runs` and `dq_results`.
+
+**What I would change.** Nothing for this run. The first run was slow, but later runs were not.
+
+### Experiment 2: Re-run (idempotency)
+
+**Expected.** ETL fact rows stay the same. ELT raw tables grow, because raw is append-only.
+
+**Observed.** ETL's fact table stayed at 2,310 rows and the revenue total did not move. `rows_loaded` stayed at 2,310 too, which shows it counts upserts and not new rows. In ELT, every run appended another 2,412 rows to `raw_orders` (the per-run list at the end of `show.py exp` has one entry per run). Staging and the fact view did not change, because they read only the latest run's raw rows. That is correct: raw is the audit copy and the client asked for it to be kept untouched. It does cost storage.
+
+**Where I saw it.** `show.py exp` (`exp02_rerun_counts`).
+
+**What I would change.** Report inserted and updated rows separately in `pipeline_runs`, so a re-run visibly shows zero new rows. For raw, load only new data and delete old runs on the retention schedule in Part E.
+
+### Experiment 3: Incremental load
+
+**Expected.** 150 orders inserted and 10 updated, with no duplicates.
+
+**Observed.** ETL extracted 5,372 rows (5,212 plus 160) and upserted 2,470. The fact table went from 2,310 to 2,460 rows, so 150 were new and 10 were updates. The ten corrected orders changed from DELIVERED to RETURNED, and the check for duplicates showed 2,460 rows and 2,460 distinct order ids. ELT did the same through `MERGE INTO` on `order_id` and also ended with 2,460 rows. I found a bug while testing this: a later normal run, without the increment, put the old DELIVERED rows back. I fixed it so that rows that came from the increment file are not overwritten by `orders.csv`. That is the reason ETL loads 2,300 and not 2,310 afterwards.
+
+**Where I saw it.** `exp03_etl_load_log`, `exp03_elt_merge_log` and `show.py inc` (`exp03_increment_result`).
+
+**What I would change.** Better inserted and updated counters, as in Experiment 2.
+
+### Experiment 4: Missing source file
+
+**Expected.** The extract task fails and retries, tasks after it do not run, and no wrong data is loaded.
+
+**Observed.** I renamed `products.csv`. In ETL `extract_products` and in ELT `load_raw_products` went to `up_for_retry`, waited two minutes, retried twice, and then failed, so the failure took about four minutes. The other extract and load tasks finished green at the same time. Everything after the failed task was `upstream_failed`. `audit` still ran and wrote a failed row. The failure message was printed in the task log, because no Slack webhook is set (`exp04_alert_in_log`). In my first version the run itself still showed green, so nothing in the run list told me anything was wrong; I fixed this by making `audit` fail the run.
+
+**Where I saw it.** Graph view during the retries and at the end (`exp04_etl_graph_retry`, `exp04_elt_graph_retry`, `exp04_etl_final_states`, `exp04_elt_final_states`), the task logs (`exp04_etl_extract_products_log`, `exp04_elt_load_raw_products_log`) and `pipeline_runs` (`exp04_pipeline_runs_failed`).
+
+**What I would change.** I send the alert only after all retries have failed. A missing file will not fix itself in two minutes, so I would alert on the first failure and use a file sensor that waits for the file until 9:20.
+
+### Experiment 5: New bad data
+
+**Expected.** The five bad rows (null customer, negative quantity, unknown store, status SHIPPED, a 2027 timestamp) land in quarantine with the right reason, and `dq_results` counts them.
+
+**Observed.** Both pipelines rejected all five, each with its own reason (`exp05_quarantine_rows`, `exp05_rejected_both`). Quarantined rows went from 162 to 167 in both. In `dq_results` five counters each went up by one: `customer_id_not_null` 18 to 19, `quantity_positive` 10 to 11, `store_exists_in_stores` 5 to 6, `order_status_allowed` 3 to 4 and `order_ts_not_in_future` 7 to 8 (`exp05_dq_results_changed`). The fact table did not change.
+
+**Where I saw it.** The quarantine file, `etl_quarantine_log`, the `elt_rejected_rows` view and `dq_results`.
+
+**What I would change.** Nothing. Every bad row had a reason and a check that counted it.
+
+### Experiment 6: Schema change
+
+**Expected.** The pipeline fails loudly and does not load wrong data.
+
+**Observed.** I renamed `order_amount` to `total`. ETL `extract_orders` failed in 2 seconds and the whole run failed in 17 seconds. ELT `load_raw_orders` failed in 9 seconds and the run failed in 20 seconds. The error was `PermanentSchemaError: orders.csv is missing required column(s): ['order_amount']`. There was only one try, with no retries, because the extract raises `AirflowFailException` for a schema error that cannot fix itself. The run status was Failed. In ETL nothing reached the warehouse (0 rows loaded). In ELT the other four raw tables loaded (2,800 rows), but orders did not, and no staging or mart task ran.
+
+**Where I saw it.** Graph view and the task log for each pipeline (`exp06_etl_graph_failed`, `exp06_etl_error_log`, `exp06_elt_graph_failed`, `exp06_elt_error_log`), and the `failed` rows in `pipeline_runs`.
+
+**What I would change.** The check only looks for missing required columns. A new column, or a column that changed type, would pass silently. I would also compare column types with the last run.
+
+### Experiment 7: Volume anomaly
+
+**Expected.** Nothing warns when volume drops by more than 90%, so I add a check.
+
+**Observed.** I cut orders to 50 rows. My `orders.volume_vs_last_run` check (Warning, fires below 10% of the last run) fired in both pipelines (`exp07_etl_volume_warning`, `exp07_elt_volume_warning`). Both runs still finished green, because it is only a Warning. ETL's fact table stayed at 2,460 rows and 1,211,087.30 revenue, so it showed old data. ELT rebuilt its marts from the 50 rows: 208 fact rows and 103,133.80 revenue, a fall of 91%, and S03's revenue dropped to 3,992.75 (`exp07_exp_output`). There was a side effect: 2,181 of 2,228 payments no longer had an order, so they failed `payments.order_exists_in_orders` and were quarantined as Critical.
+
+**Where I saw it.** The `validate` log in ETL, `dq_results` for ELT, and `show.py exp`.
+
+**What I would change.** A volume drop this large should be Critical and stop the DAG before the load or the mart rebuild. Today the warning is easy to miss and ELT publishes a revenue number that is 91% too low.
+
+### Experiment 8: Distribution drift
+
+**Expected.** Some check catches the change, and a mart metric moves.
+
+**Observed.** I multiplied `unit_price` by 100 for store S03 (159 orders). Two checks fired in both pipelines: `order_amount_matches_formula` (Critical) went from 18 to 175 rows failing, and `unit_price_matches_catalogue_mrp` (Warning) from 0 to 155. The formula check caught it only because `order_amount` was left alone. If a source system had changed both columns together, only the Warning would have fired and the rows would have loaded. In ETL the bad S03 rows were quarantined and the older values stayed in the fact table (2,460 rows, 1,211,087.30), so ETL looked healthy but was stale. In ELT the rows dropped out of the marts: 2,313 fact rows and revenue of 1,134,365.25, which is 76,722.05 lower. S03's own revenue went from 80,417.80 to 3,695.75. The comparison task printed DIFFERENT on all five totals and `all_match: False`, but it does not fail the run (`exp08_elt_compare_log`, `exp08_etl_validate_log`, `exp08_exp_output`).
+
+**Where I saw it.** `dq_results`, the `[Compare]` log in `compare_with_etl` and `show.py exp`.
+
+**What I would change.** I have no check on the shape of the data over time. I would add a daily check per store: if a store's revenue or average price moves by more than a set percentage from its own recent average, raise a Warning. I would also make a price more than 10 times the catalogue MRP Critical.
+
+### Experiment 9: Freshness
+
+**Expected.** The timeliness check warns.
+
+**Observed.** I did not edit the file. The `as_of` parameter tells the run what today's date is, so I ran both DAGs with `as_of` = 2026-11-01. The latest order is then 31 days old, which is the same condition as a stale file. `orders.latest_order_within_1_day` went to WARN in both pipelines (`exp09_etl_validate_log`, `exp09_dq_terminal`), the run configuration with the date is in `exp09_run_config`, and both runs finished green. There was a side effect I did not plan for. With the date moved forward, two orders dated 21 October (ORD001693 and ORD001089, 1,179.80 together) were no longer "in the future", so ETL loaded them. When I ran again with the normal date they stayed in the ETL fact table (2,462 rows against 2,460 in ELT), because ETL only upserts and never removes. ELT showed the right numbers again after its next run, because it rebuilds from the latest raw load. The ETL payment reconciliation also differed from ELT for the same two orders (94 against 96 payments without an order). I found this by comparing the two pipelines after the experiments, and fixed it by deleting those two rows and re-running both DAGs. The totals match again (see below).
+
+**Where I saw it.** The `validate` log, `show.py dq`, the run's Details tab, and `show.py exp`.
+
+**What I would change.** ETL needs a way to rebuild the fact table from the source files (a `full_refresh` option) and a rule to remove rows that no longer pass. I would not prune automatically, because after Experiment 7 that would delete 2,400 good rows.
+
+### Experiment 10: Recovery
+
+**Expected.** After I fix the cause and use Clear on the failed task, only the failed task and the tasks after it run again.
+
+**Observed.** I put `products.csv` back and cleared the failed extract task in each DAG, with downstream tasks included (`exp10_etl_clear_dialog`, `exp10_elt_clear_dialog`). The tasks that had already succeeded were not run again, and the cleared tasks show a higher try number than the others (`exp10_etl_try_numbers`, `exp10_elt_try_numbers`). Both runs then finished green. One weakness showed up: the audit row is written with the run id, so the green recovery replaced the failed row in `pipeline_runs`. That is why Experiment 4 is not in the table above. I took a screenshot of the failed row before recovering (`exp04_pipeline_runs_failed`).
+
+**Where I saw it.** Graph view, the Clear dialog and the Try Number column.
+
+**What I would change.** Write one audit row for each attempt and not one per run, so a failed attempt is never replaced.
+
+### The five pillars of data observability
+
+| Pillar | What I have | Seen in | How well covered |
+|---|---|---|---|
+| Freshness | `latest_order_within_1_day` check, plus the run date and time in `pipeline_runs` | Experiment 9 | Fair. It only looks at orders. Nothing checks payments or customers. |
+| Volume | `volume_vs_last_run`, row counts in every audit row | Experiment 7 | Weak. It detects the drop, but only as a Warning, so the run carries on. |
+| Schema | Required-column check at extract time, fails fast | Experiment 6 | Strongest. It fails in seconds, with the exact column, and no retries. |
+| Distribution | Formula and catalogue price checks only | Experiment 8 | Weakest. Nothing compares a store or a day with its own history. |
+| Lineage | `_source_file`, `_run_id`, `_row_num` in ELT; `source_file` and `run_id` in ETL | Part E, question 3 | Good in ELT, partial in ETL (no row number). |
+
+The best covered pillar is schema, because a bad file stops the run in under 20 seconds and says why. The weakest is distribution. Experiment 8 showed that one store's revenue could fall by 95% and the run would stay green.
+
+## Do the ELT totals match the ETL totals?
+
+Yes, after the final clean runs. The comparison task prints MATCH for all five metrics: 2,460 fact rows, net revenue 1,211,087.30, gross margin 279,931.92, 2,228 delivered orders and 339 reconciliation mismatches (`final_elt_vs_etl_match`). The totals matched before the experiments and they differed afterwards only because of Experiment 9: two orders loaded into ETL under the wrong run date stayed there (see above). This is also the main structural difference between the two designs. ETL keeps whatever it has loaded until something removes it, and ELT recalculates from the latest raw load every time.
+
+## Business questions
+
+All six questions are answered with SQL and results from both pipelines in `docs/business_questions.md`. It is produced by `include/tools/answers.py`, which also compares the full ETL and ELT results for each question and prints whether they are identical.
+
+## The client's ten acceptance criteria
+
+| # | Criterion | Where it is shown |
+|---|---|---|
+| 1 | Ready before 9:30, Monday to Saturday | Part C, screenshots 04 and 07 |
+| 2 | No bad order in the finance tables | ETL fact table holds only passed rows; Experiments 5 and 8 |
+| 3 | Raw records kept untouched | ELT `raw_*` tables, Experiment 2 |
+| 4 | Bad rows set aside with a reason | Quarantine files, `etl_quarantine_log`, `elt_rejected_rows` (screenshot 10) |
+| 5 | Re-running never double-counts | Experiment 2 |
+| 6 | Increment loaded, status changes applied | Experiment 3 |
+| 7 | Orders reconcile with payments | `etl_payment_reconciliation`, `mart_payment_reconciliation` (screenshot 13) |
+| 8 | Personal data protected | Masking in Part E, question 4 |
+| 9 | Anyone can see whether the run worked | `pipeline_runs`, task logs (screenshot 12) |
+| 10 | Written recommendation | Part G |
+
+## Bonus items
+
+- Failure alert: `include/nammamart/alerts.py` posts to Slack with the webhook read from the Airflow Variable `SLACK_WEBHOOK_URL`. With no webhook set it prints the alert in the task log instead (`exp04_alert_in_log`).
+- SCD Type 2 customers: `etl_dim_customer_scd2` keeps `valid_from`, `valid_to` and `is_current` for loyalty tier, city, area and pincode.
+- Store capacity check: `orders.store_daily_orders_within_capacity` compares each store's daily orders with `capacity_orders_per_day`. No store went over capacity in this data, so the check passes.
+- Data quality trend chart: `python include/tools/dq_trend.py` draws `docs/dq_trend.html` from `dq_results` and `pipeline_runs` (`dq_trend.png`).
+
+## Part G: Recommendation to Sameer (CTO)
+
+**Recommendation: build NammaMart on ELT, with a few ETL-style gates in front of it.** Keep every raw file as it arrives, do the cleaning and the business logic in SQL inside the warehouse, and stop the run before the marts are rebuilt when the input looks wrong.
+
+I built both pipelines on the same six files. They gave the same answers on the same data, and the same 63 checks agreed on every run. What I learned is in how they behave when something goes wrong.
+
+**Auditability.** This is where ELT is clearly better. When finance asks about one rejected order, ELT answers with three queries in one database: the raw row exactly as received, the rule it broke and proof it is not in the revenue. ETL needs the source file, the quarantine file and a log table, and its quarantine copy is masked, so the exact original lives somewhere else. A status change such as DELIVERED to RETURNED also keeps both versions in ELT raw. ETL overwrites the old one.
+
+**Data quality guarantees.** Both pipelines kept bad rows out of the finance numbers. They fail differently. In Experiments 7 and 8, ETL went on showing the old numbers (2,460 rows, 1,211,087.30), which looked healthy and was stale. ELT showed the damage straight away: revenue fell to 103,133.80 when I cut the file to 50 orders. A number that is visibly wrong gets noticed at the stand-up. A stale number does not, and Experiment 9 showed ETL keeping rows it should have dropped.
+
+**Ease of change.** In ELT a rule is a SQL file, and I can re-run it over the raw rows that are already stored, without going back to the source. When the 120-minute limit changes, the history can be recalculated. In ETL a rule change only applies to files loaded afterwards unless I run the old files again. ELT was also easier to trace (Part E, question 3).
+
+**Performance at 1000 times the data.** I measured only the small data: 10 to 17 seconds for ETL and 30 to 50 for ELT, so I cannot give measured figures for 1000 times. ETL holds each file in memory on the Airflow worker, so it hits the memory limit first. ELT hands the work to the warehouse engine, which is built for that. ELT's own problem is that it copies the whole file into raw on every run (Experiment 2). At 1000 times, that means millions of rows copied each day, so raw has to load only new data and be partitioned by date.
+
+**Cost.** ELT pays for more storage, because it keeps raw, and for more compute, because it rebuilds the marts on each run. ETL is cheaper to store but costs engineer time every time a number has to be explained. At this size both are trivial. At 1000 times the raw copy and the full rebuild become the main bills, which is why I suggest loading only new data and rebuilding only the days that changed.
+
+### Top three risks of this design
+
+1. **Personal data in raw.** ELT raw holds customer names, emails and phone numbers exactly as received. That is the most sensitive object in the warehouse. Mitigation: a separate schema that only data engineering can read, encryption, a 90-day retention, and masking or tokenising the sensitive columns as they are loaded where the business does not need the original. This also supports the client's DPDP Act obligations.
+2. **A bad file quietly shrinks the marts.** In Experiment 7 the run stayed green and the revenue mart lost 91%. Mitigation: make a volume drop above 50% Critical so the DAG stops before the marts are rebuilt, add the per-store daily checks from Experiment 8, and make the ELT-vs-ETL style comparison against yesterday a failing check.
+3. **The platform is a single laptop-sized setup.** DuckDB takes one writer at a time, and Airflow on a laptop skips the 9 AM run when the machine is off (it happened on 20 October). Mitigation: an always-on Airflow, a warehouse that accepts concurrent writers, and an alert at the first failure and not after the retries.
+
+If the client chooses ETL instead, the changes I would insist on are a full-refresh mode, a rule for removing rows that no longer pass, and a raw archive of every file.
