@@ -8,6 +8,7 @@ Writes docs/dq_trend.html (open it in a browser). It has two charts, one point p
   2. checks that ended in FAIL (Critical) or WARN (Warning)
 A run that failed before the checks ran is shown as a cross at zero. Needs no extra packages.
 """
+import math
 from pathlib import Path
 
 import duckdb
@@ -37,6 +38,12 @@ def x(i):
     return L + (W - L - R) * (i + 0.5) / n
 
 
+def nice(m):
+    """Round the top of the axis up so the four gridline labels are round numbers."""
+    step = 10 ** math.floor(math.log10(max(m, 4) / 4))
+    return math.ceil(m / 4 / step) * step * 4
+
+
 def chart(title, series, ymax):
     """series: list of (label, colour, dash, [(index, value, failed_run)])"""
     out = [f'<h2>{title}</h2><svg viewBox="0 0 {W} {H}" role="img" aria-label="{title}">']
@@ -44,7 +51,7 @@ def chart(title, series, ymax):
         v = ymax * k / 4
         y = H - B - (H - B - T) * k / 4
         out.append(f'<line x1="{L}" x2="{W - R}" y1="{y:.1f}" y2="{y:.1f}" stroke="#e5e7eb"/>'
-                   f'<text x="{L - 8}" y="{y + 4:.1f}" text-anchor="end" font-size="11" fill="{GREY}">{v:g}</text>')
+                   f'<text x="{L - 8}" y="{y + 4:.1f}" text-anchor="end" font-size="11" fill="{GREY}">{v:,.0f}</text>')
     step = max(1, n // 12)
     for i, rr in enumerate(runs):
         if i % step == 0:
@@ -75,14 +82,14 @@ def pts(dag, col):
     return [(i, rr[col], rr[3] == "failed") for i, rr in enumerate(runs) if rr[0] == dag]
 
 
-rows_max = max([rr[4] for rr in runs] + [1])
+rows_max = nice(max([rr[4] for rr in runs] + [1]))
 chk_max = max([rr[5] + rr[6] for rr in runs] + [1])
 c1 = chart("Rows failing a check, per run (all checks added up)",
            [("ETL", BLUE, "0", pts(ETL, 4)), ("ELT", ORANGE, "6 4", pts(ELT, 4))], rows_max)
 c2 = chart("Checks in FAIL or WARN state, per run",
            [("ETL FAIL (Critical)", BLUE, "0", pts(ETL, 5)), ("ETL WARN (Warning)", "#16a34a", "0", pts(ETL, 6)),
             ("ELT FAIL (Critical)", ORANGE, "6 4", pts(ELT, 5)), ("ELT WARN (Warning)", "#9333ea", "6 4", pts(ELT, 6))],
-           max([rr[5] for rr in runs] + [rr[6] for rr in runs] + [1]))
+           nice(max([rr[5] for rr in runs] + [rr[6] for rr in runs] + [1])))
 
 OUT.parent.mkdir(exist_ok=True)
 OUT.write_text(f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>NammaMart data quality trend</title>
